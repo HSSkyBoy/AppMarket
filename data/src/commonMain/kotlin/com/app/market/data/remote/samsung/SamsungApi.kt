@@ -7,7 +7,6 @@ import com.app.market.domain.model.installed.InstalledPackage
 import com.app.market.domain.model.market.AppSource
 import com.app.market.domain.model.profile.MarketProfile
 import com.app.market.domain.model.profile.SamsungRequestContext
-import com.app.market.domain.model.profile.SamsungStoreRegion
 import com.app.market.domain.repository.ProfileRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
@@ -28,7 +27,7 @@ internal class SamsungApi(
     private val preferences: PreferencesDataSource,
 ) {
     private val regionMutex = Mutex()
-    private val memoryRegions = mutableMapOf<SamsungStoreRegion, SamsungRegionContext>()
+    private var memoryRegion: SamsungRegionContext? = null
 
     suspend fun search(keyword: String, page: Int, pageSize: Int = PAGE_SIZE): List<SamsungProduct> {
         val (profile, region) = requestContext()
@@ -73,7 +72,6 @@ internal class SamsungApi(
                 ref = SamsungProductRef(
                     productId = productId,
                     guid = guid,
-                    region = region.selection,
                     generation = region.generation,
                     linkProduct = values.value("linkProductYn") == "1",
                     tencentLastInterface = values.value("usedApi", "lastInterfaceName"),
@@ -82,12 +80,8 @@ internal class SamsungApi(
         }.distinctBy { it.ref.guid.ifBlank { it.ref.productId }.lowercase() }
     }
 
-    suspend fun detail(ref: SamsungProductRef): SamsungProductDetail = detail(ref, allowOtherRegion = false)
-    private suspend fun detail(
-        ref: SamsungProductRef,
-        allowOtherRegion: Boolean,
-    ): SamsungProductDetail = coroutineScope {
-        val (profile, region) = if (allowOtherRegion) requestContext(ref.region) else requestContext(ref)
+    suspend fun detail(ref: SamsungProductRef): SamsungProductDetail = coroutineScope {
+        val (profile, region) = requestContext(ref)
         val mainParams = linkedMapOf(
             "GUID" to ref.guid,
             "productID" to ref.productId,
@@ -151,7 +145,6 @@ internal class SamsungApi(
                 ref = SamsungProductRef(
                     productId = values.value("productID"),
                     guid = guid,
-                    region = region.selection,
                     generation = region.generation,
                     linkProduct = values.value("linkProductYn") == "1",
                     tencentLastInterface = values.value("usedApi", "lastInterfaceName"),
@@ -217,7 +210,6 @@ internal class SamsungApi(
             try {
                 statelessFullPackageDownload(profile, region, detail)
             } catch (_: MarketException) {
-                if (region.selection != SamsungStoreRegion.CHINA) throw error
                 debugLog(TAG) { "stateless full package rejected; trying China APK mirror" }
                 try {
                     tencentDownloadInfo(profile, region, ref)
@@ -233,9 +225,7 @@ internal class SamsungApi(
             } catch (_: MarketException) {
                 emptyMap()
             }
-            if (values.value("downLoadURI", "downloadURI").isBlank() &&
-                region.selection == SamsungStoreRegion.CHINA
-            ) {
+            if (values.value("downLoadURI", "downloadURI").isBlank()) {
                 debugLog(TAG) { "stateless full package returned no URL; trying China APK mirror" }
                 values = try {
                     tencentDownloadInfo(profile, region, ref)
@@ -300,9 +290,6 @@ internal class SamsungApi(
         installed: InstalledPackage?,
         targetVersionCode: Long,
     ): SamsungDownload {
-        if (region.selection != SamsungStoreRegion.CHINA) {
-            throw MarketException("Samsung 腾讯联运商品仅属于国区目录")
-        }
         val info = tencentDownloadInfo(profile, region, ref)
         val orderParams = linkedMapOf("productID" to ref.productId).withIdentity(profile).apply {
             put("GUID", ref.guid)
@@ -343,39 +330,26 @@ internal class SamsungApi(
     private suspend fun requestContext(ref: SamsungProductRef? = null): Pair<MarketProfile, SamsungRegionContext> {
         val profile = profileStore.load(AppSource.SAMSUNG)
         val region = resolveRegion(profile)
-        if (ref != null && (ref.region != region.selection ||
-                    (ref.generation > 0L && ref.generation != region.generation))
-        ) {
-            throw MarketException("Samsung 商店区域已切换，请重新搜索后再打开或下载")
+        if (ref != null && ref.generation > 0L && ref.generation != region.generation) {
+            throw MarketException("Samsung 目录版本已过期，请重新搜索后再打开或下载")
         }
         return profile to region
     }
 
-    private suspend fun requestContext(selection: SamsungStoreRegion): Pair<MarketProfile, SamsungRegionContext> {
-        val profile = profileStore.load(AppSource.SAMSUNG)
-        return profile to resolveRegion(profile, selection)
-    }
-
-    private suspend fun resolveRegion(profile: MarketProfile): SamsungRegionContext =
-        resolveRegion(profile, profileStore.currentSamsungStoreRegion())
-
-    private suspend fun resolveRegion(
-        profile: MarketProfile,
-        selection: SamsungStoreRegion,
-    ): SamsungRegionContext = regionMutex.withLock {
-        val requestContext = profileStore.samsungRequestContext(selection)
-        memoryRegions[selection]?.let { return@withLock it.withRequestContext(requestContext) }
-        val seed = seedContext(selection, requestContext)
-        val cachedUrl = preferences.read(SamsungRegionPreferenceKeys.countryUrl(selection)).orEmpty()
+    private suspend fun resolveRegion(profile: MarketProfile): SamsungRegionContext = regionMutex.withLock {
+        val requestContext = profileStore.samsungRequestContext()
+        memoryRegion?.let { return@withLock it.withRequestContext(requestContext) }
+        val seed = seedContext(requestContext)
+        val cachedUrl = preferences.read(SamsungRegionPreferenceKeys.CountryUrl).orEmpty()
         if (cachedUrl.isNotBlank()) {
             val cached = seed.copy(
-                generation = preferences.read(SamsungRegionPreferenceKeys.generation(selection))?.toLongOrNull() ?: 1L,
+                generation = preferences.read(SamsungRegionPreferenceKeys.Generation)?.toLongOrNull() ?: 1L,
                 countryUrl = cachedUrl.secureOdcUrl(),
-                mcc = preferences.read(SamsungRegionPreferenceKeys.mcc(selection)).orEmpty().ifBlank { seed.mcc },
-                countryCode = preferences.read(SamsungRegionPreferenceKeys.countryCode(selection)).orEmpty()
+                mcc = preferences.read(SamsungRegionPreferenceKeys.Mcc).orEmpty().ifBlank { seed.mcc },
+                countryCode = preferences.read(SamsungRegionPreferenceKeys.CountryCode).orEmpty()
                     .ifBlank { seed.countryCode },
             )
-            memoryRegions[selection] = cached
+            memoryRegion = cached
             return@withLock cached.withRequestContext(requestContext)
         }
         val discovered = runCatching {
@@ -395,21 +369,21 @@ internal class SamsungApi(
             ).also { require(it.countryUrl.isNotBlank()) }
         }.getOrElse { error ->
             debugLog(TAG) {
-                "region discovery failed region=${selection.name}; using fixed fallback: ${error.message}"
+                "region discovery failed; using fixed fallback: ${error.message}"
             }
             seed.copy(
                 generation = 1L,
-                countryUrl = if (selection == SamsungStoreRegion.CHINA) CHINA_ODC else US_ODC,
+                countryUrl = CHINA_ODC,
             )
         }
         debugLog(TAG) {
-            "region resolved region=${selection.name} country=${discovered.countryCode} endpoint=${discovered.countryUrl}"
+            "region resolved country=${discovered.countryCode} endpoint=${discovered.countryUrl}"
         }
-        preferences.put(SamsungRegionPreferenceKeys.countryUrl(selection), discovered.countryUrl)
-        preferences.put(SamsungRegionPreferenceKeys.countryCode(selection), discovered.countryCode)
-        preferences.put(SamsungRegionPreferenceKeys.mcc(selection), discovered.mcc)
-        preferences.put(SamsungRegionPreferenceKeys.generation(selection), discovered.generation.toString())
-        memoryRegions[selection] = discovered
+        preferences.put(SamsungRegionPreferenceKeys.CountryUrl, discovered.countryUrl)
+        preferences.put(SamsungRegionPreferenceKeys.CountryCode, discovered.countryCode)
+        preferences.put(SamsungRegionPreferenceKeys.Mcc, discovered.mcc)
+        preferences.put(SamsungRegionPreferenceKeys.Generation, discovered.generation.toString())
+        memoryRegion = discovered
         discovered.withRequestContext(requestContext)
     }
 
@@ -421,7 +395,7 @@ internal class SamsungApi(
         params: Map<String, String>,
     ): SamsungXmlResponse {
         debugLog(TAG) {
-            "request=$id/$name region=${region.selection.name} country=${region.countryCode} endpoint=${region.countryUrl}"
+            "request=$id/$name country=${region.countryCode} endpoint=${region.countryUrl}"
         }
         val body = SamsungProtocol.requestBody(profile, region, id, name, params)
         val httpResponse = client.post(region.countryUrl) {
@@ -442,7 +416,7 @@ internal class SamsungApi(
         if (!parsed.isSuccess) {
             val message = parsed.errorMessage.ifBlank { "协议错误 ${parsed.errorCode.ifBlank { parsed.returnCode.toString() }}" }
             debugLog(TAG) {
-                "request=$id/$name rejected region=${region.selection.name} code=${parsed.errorCode.ifBlank { parsed.returnCode.toString() }} message=${
+                "request=$id/$name rejected code=${parsed.errorCode.ifBlank { parsed.returnCode.toString() }} message=${
                     message.take(
                         160
                     )
@@ -454,13 +428,11 @@ internal class SamsungApi(
     }
 
     private fun seedContext(
-        selection: SamsungStoreRegion,
         request: SamsungRequestContext,
     ): SamsungRegionContext {
         return SamsungRegionContext(
-            selection = selection,
             generation = 0L,
-            countryUrl = if (selection == SamsungStoreRegion.CHINA) CHINA_HUB else GLOBAL_HUB,
+            countryUrl = CHINA_HUB,
             mcc = request.mcc,
             mnc = request.mnc,
             csc = request.csc,
@@ -501,7 +473,6 @@ internal class SamsungApi(
             ref = SamsungProductRef(
                 productId = productId,
                 guid = guid,
-                region = region.selection,
                 generation = region.generation,
                 linkProduct = value("linkProductYn") == "1",
                 tencentLastInterface = value("usedApi", "lastInterfaceName"),
@@ -513,9 +484,7 @@ internal class SamsungApi(
         const val TAG = "SamsungApi"
         const val PAGE_SIZE = 20
         const val CHINA_HUB = "https://cn-ms.galaxyappstore.com/ods.as"
-        const val GLOBAL_HUB = "https://hub-odc.samsungapps.com/ods.as"
         const val CHINA_ODC = "https://cn-ms.galaxyappstore.com/ods.as"
-        const val US_ODC = "https://us-odc.samsungapps.com/ods.as"
     }
 }
 

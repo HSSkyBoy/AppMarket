@@ -34,10 +34,8 @@ import com.app.market.domain.model.market.AppSource
 import com.app.market.domain.model.market.AppSource.OPPO
 import com.app.market.domain.model.market.AppSource.SAMSUNG
 import com.app.market.domain.model.profile.MarketProfile
-import com.app.market.domain.model.profile.OppoStoreRegion
 import com.app.market.domain.model.profile.ProfileSource
 import com.app.market.domain.model.profile.ProfileTemplate
-import com.app.market.domain.model.profile.SamsungStoreRegion
 import com.app.market.platform.UiPlatform
 import com.app.market.resources.Res
 import com.app.market.resources.cancel
@@ -50,9 +48,6 @@ import com.app.market.resources.profile_source_current_device
 import com.app.market.resources.profile_source_custom
 import com.app.market.resources.profile_source_device
 import com.app.market.resources.profile_source_preset
-import com.app.market.resources.profile_store_region
-import com.app.market.resources.profile_store_region_china
-import com.app.market.resources.profile_store_region_global
 import com.app.market.resources.profile_template_name
 import com.app.market.resources.save
 import com.app.market.resources.saved
@@ -93,9 +88,7 @@ fun DeviceProfileScreen(
     val templateNames by viewModel.templateNames.collectAsStateWithLifecycle()
     val overriddenFields by viewModel.overriddenFields.collectAsStateWithLifecycle()
     val canUseDevice by viewModel.canUseDevice.collectAsStateWithLifecycle()
-    val oppoStoreRegion by viewModel.oppoStoreRegion.collectAsStateWithLifecycle()
     val oppoRequestContext by viewModel.oppoRequestContext.collectAsStateWithLifecycle()
-    val samsungStoreRegion by viewModel.samsungStoreRegion.collectAsStateWithLifecycle()
     val samsungRequestContext by viewModel.samsungRequestContext.collectAsStateWithLifecycle()
     val templates by viewModel.templates.collectAsStateWithLifecycle()
     val showSaveTemplateDialog by viewModel.showSaveTemplateDialog.collectAsStateWithLifecycle()
@@ -103,8 +96,6 @@ fun DeviceProfileScreen(
     val savedMsg = stringResource(Res.string.saved)
     val customLabel = stringResource(Res.string.profile_source_custom)
     val presetLabel = stringResource(Res.string.profile_source_preset)
-    val chinaRegionLabel = stringResource(Res.string.profile_store_region_china)
-    val globalRegionLabel = stringResource(Res.string.profile_store_region_global)
     val oppoRequestValues = listOf(
         "user-region" to oppoRequestContext.userRegion,
         "system-locale" to oppoRequestContext.systemLocale,
@@ -188,15 +179,10 @@ fun DeviceProfileScreen(
                 customLabel = customLabel,
                 presetLabel = presetLabel,
                 deviceLabel = deviceLabel(appSource),
-                chinaRegionLabel = chinaRegionLabel,
-                globalRegionLabel = globalRegionLabel,
-                oppoStoreRegion = oppoStoreRegion,
                 oppoRequestValues = oppoRequestValues,
-                samsungStoreRegion = samsungStoreRegion,
                 samsungRequestValues = samsungRequestValues,
                 hasCustomRequestContext = appSource == SAMSUNG &&
                         DeviceProfileViewModel.hasCustomSamsungRequestContext(
-                            samsungStoreRegion,
                             samsungRequestContext,
                         ),
                 modifier = backdropModifier,
@@ -246,11 +232,7 @@ private fun DeviceProfileSourcePage(
     customLabel: String,
     presetLabel: String,
     deviceLabel: String,
-    chinaRegionLabel: String,
-    globalRegionLabel: String,
-    oppoStoreRegion: OppoStoreRegion,
     oppoRequestValues: List<Pair<String, String>>,
-    samsungStoreRegion: SamsungStoreRegion,
     samsungRequestValues: List<Pair<String, String>>,
     hasCustomRequestContext: Boolean,
     modifier: Modifier,
@@ -313,20 +295,6 @@ private fun DeviceProfileSourcePage(
             }
         }
         if (appSource == OPPO) {
-            item(key = "oppo-store-region") {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    WindowDropdownPreference(
-                        title = stringResource(Res.string.profile_store_region),
-                        items = listOf(chinaRegionLabel, globalRegionLabel),
-                        selectedIndex = if (oppoStoreRegion == OppoStoreRegion.CHINA) 0 else 1,
-                        onSelectedIndexChange = { regionIndex ->
-                            viewModel.setOppoStoreRegion(
-                                if (regionIndex == 0) OppoStoreRegion.CHINA else OppoStoreRegion.GLOBAL
-                            )
-                        },
-                    )
-                }
-            }
             items(oppoRequestValues, key = { "oppo-header-${it.first}" }) { (name, value) ->
                 TextField(
                     value = value,
@@ -338,20 +306,6 @@ private fun DeviceProfileSourcePage(
             }
         }
         if (appSource == SAMSUNG) {
-            item(key = "samsung-store-region") {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    WindowDropdownPreference(
-                        title = stringResource(Res.string.profile_store_region),
-                        items = listOf(chinaRegionLabel, globalRegionLabel),
-                        selectedIndex = if (samsungStoreRegion == SamsungStoreRegion.CHINA) 0 else 1,
-                        onSelectedIndexChange = { regionIndex ->
-                            viewModel.setSamsungStoreRegion(
-                                if (regionIndex == 0) SamsungStoreRegion.CHINA else SamsungStoreRegion.GLOBAL
-                            )
-                        },
-                    )
-                }
-            }
             items(samsungRequestValues, key = { "samsung-header-${it.first}" }) { (name, value) ->
                 TextField(
                     value = value,

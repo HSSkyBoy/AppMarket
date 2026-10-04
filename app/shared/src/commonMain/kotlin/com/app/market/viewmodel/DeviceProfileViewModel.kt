@@ -3,16 +3,14 @@ package com.app.market.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.market.domain.model.market.AppSource
+import com.app.market.domain.model.profile.DefaultOppoRequestContext
+import com.app.market.domain.model.profile.DefaultSamsungRequestContext
 import com.app.market.domain.model.profile.MarketProfile
 import com.app.market.domain.model.profile.MarketProfileFields
 import com.app.market.domain.model.profile.OppoRequestContext
-import com.app.market.domain.model.profile.OppoStoreRegion
 import com.app.market.domain.model.profile.ProfileSource
 import com.app.market.domain.model.profile.ProfileTemplate
 import com.app.market.domain.model.profile.SamsungRequestContext
-import com.app.market.domain.model.profile.SamsungStoreRegion
-import com.app.market.domain.model.profile.oppoRequestContext
-import com.app.market.domain.model.profile.requestContext
 import com.app.market.domain.repository.ProfileRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,16 +37,10 @@ class DeviceProfileViewModel(
     private val _canUseDevice = MutableStateFlow<Map<AppSource, Boolean>>(emptyMap())
     val canUseDevice: StateFlow<Map<AppSource, Boolean>> = _canUseDevice.asStateFlow()
 
-    private val _oppoStoreRegion = MutableStateFlow(OppoStoreRegion.CHINA)
-    val oppoStoreRegion: StateFlow<OppoStoreRegion> = _oppoStoreRegion.asStateFlow()
-
-    private val _oppoRequestContext = MutableStateFlow(OppoStoreRegion.CHINA.oppoRequestContext())
+    private val _oppoRequestContext = MutableStateFlow(DefaultOppoRequestContext)
     val oppoRequestContext: StateFlow<OppoRequestContext> = _oppoRequestContext.asStateFlow()
 
-    private val _samsungStoreRegion = MutableStateFlow(SamsungStoreRegion.CHINA)
-    val samsungStoreRegion: StateFlow<SamsungStoreRegion> = _samsungStoreRegion.asStateFlow()
-
-    private val _samsungRequestContext = MutableStateFlow(SamsungStoreRegion.CHINA.requestContext())
+    private val _samsungRequestContext = MutableStateFlow(DefaultSamsungRequestContext)
     val samsungRequestContext: StateFlow<SamsungRequestContext> = _samsungRequestContext.asStateFlow()
 
     private val _templates = MutableStateFlow<List<ProfileTemplate>>(emptyList())
@@ -58,8 +50,8 @@ class DeviceProfileViewModel(
     val showSaveTemplateDialog: StateFlow<AppSource?> = _showSaveTemplateDialog.asStateFlow()
 
     private val edited = mutableMapOf<AppSource, MutableSet<String>>()
-    private val editedOppoRequestContexts = mutableMapOf<OppoStoreRegion, OppoRequestContext>()
-    private val editedSamsungRequestContexts = mutableMapOf<SamsungStoreRegion, SamsungRequestContext>()
+    private var editedOppoRequestContext: OppoRequestContext? = null
+    private var editedSamsungRequestContext: SamsungRequestContext? = null
 
     init {
         viewModelScope.launch {
@@ -74,19 +66,6 @@ class DeviceProfileViewModel(
         refreshAll()
     }
 
-    fun setOppoStoreRegion(region: OppoStoreRegion) = mutate {
-        store.setOppoStoreRegion(region)
-        _oppoStoreRegion.value = region
-        _oppoRequestContext.value = editedOppoRequestContexts[region] ?: store.oppoRequestContext(region)
-    }
-
-    fun setSamsungStoreRegion(region: SamsungStoreRegion) = mutate {
-        store.setSamsungStoreRegion(region)
-        _samsungStoreRegion.value = region
-        _samsungRequestContext.value =
-            editedSamsungRequestContexts[region] ?: store.samsungRequestContext(region)
-    }
-
     fun updateOppoRequestContext(name: String, value: String) {
         val current = _oppoRequestContext.value
         val next = when (name) {
@@ -96,7 +75,7 @@ class DeviceProfileViewModel(
             "locale" -> current.copy(locale = value)
             else -> return
         }
-        editedOppoRequestContexts[_oppoStoreRegion.value] = next
+        editedOppoRequestContext = next
         _oppoRequestContext.value = next
     }
 
@@ -110,7 +89,7 @@ class DeviceProfileViewModel(
             "csc" -> current.copy(csc = value)
             else -> return
         }
-        editedSamsungRequestContexts[_samsungStoreRegion.value] = next
+        editedSamsungRequestContext = next
         _templateNames.update { it + (AppSource.SAMSUNG to null) }
         _samsungRequestContext.value = next
     }
@@ -142,9 +121,8 @@ class DeviceProfileViewModel(
     }
 
     fun save(appSource: AppSource) {
-        val oppoContextEdits = if (appSource == AppSource.OPPO) editedOppoRequestContexts.toMap() else emptyMap()
-        val samsungContextEdits =
-            if (appSource == AppSource.SAMSUNG) editedSamsungRequestContexts.toMap() else emptyMap()
+        val oppoContextEdit = if (appSource == AppSource.OPPO) editedOppoRequestContext else null
+        val samsungContextEdit = if (appSource == AppSource.SAMSUNG) editedSamsungRequestContext else null
         mutate {
             val profile = _profiles.value[appSource] ?: return@mutate
             store.save(
@@ -152,16 +130,16 @@ class DeviceProfileViewModel(
                 (edited[appSource].orEmpty() + _overriddenFields.value[appSource].orEmpty()).toSet(),
                 appSource,
             )
-            oppoContextEdits.forEach { (region, context) ->
-                store.saveOppoRequestContext(region, context)
-                if (editedOppoRequestContexts[region] == context) {
-                    editedOppoRequestContexts.remove(region)
+            oppoContextEdit?.let { context ->
+                store.saveOppoRequestContext(context)
+                if (editedOppoRequestContext == context) {
+                    editedOppoRequestContext = null
                 }
             }
-            samsungContextEdits.forEach { (region, context) ->
-                store.saveSamsungRequestContext(region, context)
-                if (editedSamsungRequestContexts[region] == context) {
-                    editedSamsungRequestContexts.remove(region)
+            samsungContextEdit?.let { context ->
+                store.saveSamsungRequestContext(context)
+                if (editedSamsungRequestContext == context) {
+                    editedSamsungRequestContext = null
                 }
             }
             edited.remove(appSource)
@@ -200,22 +178,15 @@ class DeviceProfileViewModel(
     }
 
     private suspend fun resetSamsungRequestContexts() {
-        editedSamsungRequestContexts.clear()
-        SamsungStoreRegion.entries.forEach { region ->
-            store.saveSamsungRequestContext(region, region.requestContext())
-        }
+        editedSamsungRequestContext = null
+        store.saveSamsungRequestContext(DefaultSamsungRequestContext)
     }
 
     private suspend fun refreshAll() {
         _templates.value = store.templates()
         EDITABLE_SOURCES.forEach { refreshSource(it) }
-        val region = store.currentOppoStoreRegion()
-        _oppoStoreRegion.value = region
-        _oppoRequestContext.value = editedOppoRequestContexts[region] ?: store.oppoRequestContext(region)
-        val samsungRegion = store.currentSamsungStoreRegion()
-        _samsungStoreRegion.value = samsungRegion
-        _samsungRequestContext.value =
-            editedSamsungRequestContexts[samsungRegion] ?: store.samsungRequestContext(samsungRegion)
+        _oppoRequestContext.value = editedOppoRequestContext ?: store.oppoRequestContext()
+        _samsungRequestContext.value = editedSamsungRequestContext ?: store.samsungRequestContext()
     }
 
     private suspend fun refreshSource(appSource: AppSource) {
@@ -334,9 +305,8 @@ class DeviceProfileViewModel(
         }
 
         fun hasCustomSamsungRequestContext(
-            region: SamsungStoreRegion,
             context: SamsungRequestContext,
-        ): Boolean = context != region.requestContext()
+        ): Boolean = context != DefaultSamsungRequestContext
 
         fun valueOf(profile: MarketProfile, name: String): String = MarketProfileFields.valueOf(profile, name)
     }

@@ -16,16 +16,12 @@ import com.app.market.data.remote.xiaomi.str
 import com.app.market.domain.model.market.AppSource
 import com.app.market.domain.model.profile.MarketProfile
 import com.app.market.domain.model.profile.MarketProfileFields
+import com.app.market.domain.model.profile.DefaultOppoRequestContext
+import com.app.market.domain.model.profile.DefaultSamsungRequestContext
 import com.app.market.domain.model.profile.OppoRequestContext
-import com.app.market.domain.model.profile.OppoStoreRegion
 import com.app.market.domain.model.profile.ProfileSource
 import com.app.market.domain.model.profile.ProfileTemplate
 import com.app.market.domain.model.profile.SamsungRequestContext
-import com.app.market.domain.model.profile.SamsungStoreRegion
-import com.app.market.domain.model.profile.oppoRequestContext
-import com.app.market.domain.model.profile.oppoStoreRegion
-import com.app.market.domain.model.profile.requestContext
-import com.app.market.domain.model.profile.samsungStoreRegion
 import com.app.market.domain.repository.ProfileRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -65,76 +61,42 @@ internal class ProfileRepositoryImpl(
         refreshCachedProfileLocked(appSource)
     }
 
-    override suspend fun currentOppoStoreRegion(): OppoStoreRegion = mutex.withLock {
-        when (preferences.read(ProfilePreferenceKeys.OppoStoreRegion)) {
-            "china" -> OppoStoreRegion.CHINA
-            "global" -> OppoStoreRegion.GLOBAL
-            else -> loadLocked(AppSource.OPPO).oppoStoreRegion()
-        }
-    }
-
-    override suspend fun setOppoStoreRegion(region: OppoStoreRegion) = mutex.withLock {
-        preferences.put(
-            ProfilePreferenceKeys.OppoStoreRegion,
-            if (region == OppoStoreRegion.CHINA) "china" else "global",
-        )
-    }
-
-    override suspend fun currentSamsungStoreRegion(): SamsungStoreRegion = mutex.withLock {
-        when (preferences.read(ProfilePreferenceKeys.SamsungStoreRegion)) {
-            "china" -> SamsungStoreRegion.CHINA
-            "global" -> SamsungStoreRegion.GLOBAL
-            else -> loadLocked(AppSource.SAMSUNG).samsungStoreRegion()
-        }
-    }
-
-    override suspend fun setSamsungStoreRegion(region: SamsungStoreRegion) = mutex.withLock {
-        preferences.put(
-            ProfilePreferenceKeys.SamsungStoreRegion,
-            if (region == SamsungStoreRegion.CHINA) "china" else "global",
-        )
-    }
-
-    override suspend fun oppoRequestContext(region: OppoStoreRegion): OppoRequestContext = mutex.withLock {
-        oppoRequestContextLocked(region)
+    override suspend fun oppoRequestContext(): OppoRequestContext = mutex.withLock {
+        oppoRequestContextLocked()
     }
 
     override suspend fun saveOppoRequestContext(
-        region: OppoStoreRegion,
         context: OppoRequestContext,
     ) = mutex.withLock {
-        val userRegion = ProfilePreferenceKeys.oppoUserRegion(region)
         preferences.update(
-            userRegion.namespace,
+            ProfilePreferenceKeys.OppoUserRegion.namespace,
             PreferenceChanges(
                 strings = mapOf(
-                    userRegion to context.userRegion,
-                    ProfilePreferenceKeys.oppoSystemLocale(region) to context.systemLocale,
-                    ProfilePreferenceKeys.oppoSupportedLocales(region) to context.supportedLocales,
-                    ProfilePreferenceKeys.oppoLocale(region) to context.locale,
+                    ProfilePreferenceKeys.OppoUserRegion to context.userRegion,
+                    ProfilePreferenceKeys.OppoSystemLocale to context.systemLocale,
+                    ProfilePreferenceKeys.OppoSupportedLocales to context.supportedLocales,
+                    ProfilePreferenceKeys.OppoLocale to context.locale,
                 )
             ),
         )
     }
 
-    override suspend fun samsungRequestContext(region: SamsungStoreRegion): SamsungRequestContext = mutex.withLock {
-        samsungRequestContextLocked(region)
+    override suspend fun samsungRequestContext(): SamsungRequestContext = mutex.withLock {
+        samsungRequestContextLocked()
     }
 
     override suspend fun saveSamsungRequestContext(
-        region: SamsungStoreRegion,
         context: SamsungRequestContext,
     ) = mutex.withLock {
-        val countryCode = ProfilePreferenceKeys.samsungCountryCode(region)
         preferences.update(
-            countryCode.namespace,
+            ProfilePreferenceKeys.SamsungCountryCode.namespace,
             PreferenceChanges(
                 strings = mapOf(
-                    countryCode to context.countryCode,
-                    ProfilePreferenceKeys.samsungLanguage(region) to context.language,
-                    ProfilePreferenceKeys.samsungMcc(region) to context.mcc,
-                    ProfilePreferenceKeys.samsungMnc(region) to context.mnc,
-                    ProfilePreferenceKeys.samsungCsc(region) to context.csc,
+                    ProfilePreferenceKeys.SamsungCountryCode to context.countryCode,
+                    ProfilePreferenceKeys.SamsungLanguage to context.language,
+                    ProfilePreferenceKeys.SamsungMcc to context.mcc,
+                    ProfilePreferenceKeys.SamsungMnc to context.mnc,
+                    ProfilePreferenceKeys.SamsungCsc to context.csc,
                 )
             ),
         )
@@ -243,30 +205,30 @@ internal class ProfileRepositoryImpl(
             }
     }
 
-    private suspend fun oppoRequestContextLocked(region: OppoStoreRegion): OppoRequestContext {
-        val defaults = region.oppoRequestContext()
+    private suspend fun oppoRequestContextLocked(): OppoRequestContext {
+        val defaults = DefaultOppoRequestContext
         return OppoRequestContext(
-            userRegion = preferences.read(ProfilePreferenceKeys.oppoUserRegion(region))
+            userRegion = preferences.read(ProfilePreferenceKeys.OppoUserRegion)
                 ?: defaults.userRegion,
-            systemLocale = preferences.read(ProfilePreferenceKeys.oppoSystemLocale(region))
+            systemLocale = preferences.read(ProfilePreferenceKeys.OppoSystemLocale)
                 ?: defaults.systemLocale,
-            supportedLocales = preferences.read(ProfilePreferenceKeys.oppoSupportedLocales(region))
+            supportedLocales = preferences.read(ProfilePreferenceKeys.OppoSupportedLocales)
                 ?: defaults.supportedLocales,
-            locale = preferences.read(ProfilePreferenceKeys.oppoLocale(region))
+            locale = preferences.read(ProfilePreferenceKeys.OppoLocale)
                 ?: defaults.locale,
         )
     }
 
-    private suspend fun samsungRequestContextLocked(region: SamsungStoreRegion): SamsungRequestContext {
-        val defaults = region.requestContext()
+    private suspend fun samsungRequestContextLocked(): SamsungRequestContext {
+        val defaults = DefaultSamsungRequestContext
         return SamsungRequestContext(
-            countryCode = preferences.read(ProfilePreferenceKeys.samsungCountryCode(region))
+            countryCode = preferences.read(ProfilePreferenceKeys.SamsungCountryCode)
                 ?: defaults.countryCode,
-            language = preferences.read(ProfilePreferenceKeys.samsungLanguage(region))
+            language = preferences.read(ProfilePreferenceKeys.SamsungLanguage)
                 ?: defaults.language,
-            mcc = preferences.read(ProfilePreferenceKeys.samsungMcc(region)) ?: defaults.mcc,
-            mnc = preferences.read(ProfilePreferenceKeys.samsungMnc(region)) ?: defaults.mnc,
-            csc = preferences.read(ProfilePreferenceKeys.samsungCsc(region)) ?: defaults.csc,
+            mcc = preferences.read(ProfilePreferenceKeys.SamsungMcc) ?: defaults.mcc,
+            mnc = preferences.read(ProfilePreferenceKeys.SamsungMnc) ?: defaults.mnc,
+            csc = preferences.read(ProfilePreferenceKeys.SamsungCsc) ?: defaults.csc,
         )
     }
 

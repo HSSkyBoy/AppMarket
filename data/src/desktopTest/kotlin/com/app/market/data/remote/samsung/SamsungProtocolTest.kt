@@ -1,7 +1,6 @@
 package com.app.market.data.remote.samsung
 
 import com.app.market.domain.model.profile.MarketProfile
-import com.app.market.domain.model.profile.SamsungStoreRegion
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -39,7 +38,6 @@ class SamsungProtocolTest {
                 supportedIslandVersion = "",
             ),
             region = SamsungRegionContext(
-                selection = SamsungStoreRegion.GLOBAL,
                 generation = 1,
                 countryUrl = "https://example.com/ods.as",
                 mcc = "999",
@@ -106,11 +104,10 @@ class SamsungProtocolTest {
     }
 
     @Test
-    fun productReferenceRoundTripsRegionAndGeneration() {
+    fun productReferenceRoundTripsGenerationAndAttributes() {
         val original = SamsungProductRef(
             productId = "000002181561",
             guid = "com.tencent.wework",
-            region = SamsungStoreRegion.CHINA,
             generation = 7,
             linkProduct = true,
             tencentLastInterface = "getRecommendADList",

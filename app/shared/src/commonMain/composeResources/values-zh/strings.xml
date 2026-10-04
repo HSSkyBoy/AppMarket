@@ -145,9 +145,6 @@
     <string name="profile_source_preset">预设信息</string>
     <string name="profile_source_device">从设备获取</string>
     <string name="profile_source_current_device">从当前设备获取</string>
-    <string name="profile_store_region">商店区域</string>
-    <string name="profile_store_region_china">中国</string>
-    <string name="profile_store_region_global">全球</string>
     <string name="profile_save_template">另存为模板</string>
     <string name="profile_delete_template_confirm">确定删除模板“%1$s”吗？</string>
     <string name="profile_template_name">模板名</string>

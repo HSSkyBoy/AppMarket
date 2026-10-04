@@ -2,7 +2,6 @@ package com.app.market.data.remote.oppo
 
 import com.app.market.domain.model.profile.MarketProfile
 import com.app.market.domain.model.profile.OppoRequestContext
-import com.app.market.domain.model.profile.OppoStoreRegion
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -56,23 +55,18 @@ class OppoSignerTest {
     }
 
     @Test
-    fun storeRegionAddsTheMatchingOfficialRegionContext() {
+    fun defaultRequestContextAddsTheOfficialChinaRegionContext() {
         val profile = profile("3f70e9e4-a1df-4b75-9914-8e6d59856069")
-        val china = OppoSigner.headers("GET", "https://example.com/detail", profile, OppoStoreRegion.CHINA).values
-        val global = OppoSigner.headers("GET", "https://example.com/detail", profile, OppoStoreRegion.GLOBAL).values
+        val china = OppoSigner.headers("GET", "https://example.com/detail", profile).values
 
         assertEquals("CN", china["user-region"])
         assertEquals("zh-CN", china["system-locale"])
         assertEquals("zh-CN", china["supported-locales"])
         assertEquals("zh-CN;CN", china["locale"])
-        assertEquals("MO", global["user-region"])
-        assertEquals("zh-HK", global["system-locale"])
-        assertEquals("zh-HK", global["supported-locales"])
-        assertEquals("zh-HK;CN", global["locale"])
     }
 
     @Test
-    fun editableRequestContextOverridesTheRegionDefaults() {
+    fun editableRequestContextOverridesTheDefaults() {
         val custom = OppoRequestContext(
             userRegion = "SG",
             systemLocale = "en-SG",
@@ -83,7 +77,6 @@ class OppoSignerTest {
             "GET",
             "https://example.com/detail",
             profile("3f70e9e4-a1df-4b75-9914-8e6d59856069"),
-            OppoStoreRegion.GLOBAL,
             custom,
         ).values
 

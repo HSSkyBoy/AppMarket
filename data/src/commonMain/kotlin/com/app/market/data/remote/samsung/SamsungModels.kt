@@ -1,11 +1,9 @@
 package com.app.market.data.remote.samsung
 
-import com.app.market.domain.model.profile.SamsungStoreRegion
 import io.ktor.http.Url
 import io.ktor.http.encodeURLParameter
 
 internal data class SamsungRegionContext(
-    val selection: SamsungStoreRegion,
     val generation: Long,
     val countryUrl: String,
     val mcc: String,
@@ -18,7 +16,6 @@ internal data class SamsungRegionContext(
 internal data class SamsungProductRef(
     val productId: String,
     val guid: String,
-    val region: SamsungStoreRegion,
     val generation: Long,
     val linkProduct: Boolean = false,
     val tencentLastInterface: String = "",
@@ -27,7 +24,6 @@ internal data class SamsungProductRef(
         append("appmarket-samsung://product?")
         append("productId=").append(productId.encodeURLParameter())
         append("&guid=").append(guid.encodeURLParameter())
-        append("&region=").append(region.name.lowercase())
         append("&generation=").append(generation)
         append("&linkProduct=").append(if (linkProduct) "1" else "0")
         if (tencentLastInterface.isNotBlank()) {
@@ -45,11 +41,6 @@ internal data class SamsungProductRef(
             SamsungProductRef(
                 productId = productId,
                 guid = guid,
-                region = if (url.parameters["region"] == "global") {
-                    SamsungStoreRegion.GLOBAL
-                } else {
-                    SamsungStoreRegion.CHINA
-                },
                 generation = url.parameters["generation"]?.toLongOrNull() ?: 0L,
                 linkProduct = url.parameters["linkProduct"] == "1",
                 tencentLastInterface = url.parameters["last"].orEmpty(),

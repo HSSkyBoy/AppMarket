@@ -1,8 +1,6 @@
 package com.app.market.data.remote.oppo
 
 import com.app.market.di.dataModules
-import com.app.market.domain.model.profile.OppoStoreRegion
-import com.app.market.domain.repository.ProfileRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.prepareGet
@@ -27,62 +25,55 @@ class LiveOppoMobileServicesTest {
         try {
             val api = koin.get<OppoApi>()
             val client = koin.get<HttpClient>()
-            val profiles = koin.get<ProfileRepository>()
-            val originalRegion = profiles.currentOppoStoreRegion()
-            try {
-                profiles.setOppoStoreRegion(OppoStoreRegion.CHINA)
-                val app = api.search("移动服务", 0).items.first { it.packageName == MOBILE_SERVICES }
-                val meta = api.downloadMeta(app)
-                assertTrue(meta.parts.isNotEmpty())
-                assertEquals(meta.size, meta.parts.sumOf { it.size })
-                assertEquals("base", meta.parts.first().type)
-                meta.parts.forEachIndexed { index, part ->
-                    assertTrue(part.url.startsWith("https://"), "Part $index did not use HTTPS")
-                    assertFalse(
-                        isOppoDownloadMetadataUrl(part.url),
-                        "Part $index was still an OPPO metadata response",
+            val app = api.search("移动服务", 0).items.first { it.packageName == MOBILE_SERVICES }
+            val meta = api.downloadMeta(app)
+            assertTrue(meta.parts.isNotEmpty())
+            assertEquals(meta.size, meta.parts.sumOf { it.size })
+            assertEquals("base", meta.parts.first().type)
+            meta.parts.forEachIndexed { index, part ->
+                assertTrue(part.url.startsWith("https://"), "Part $index did not use HTTPS")
+                assertFalse(
+                    isOppoDownloadMetadataUrl(part.url),
+                    "Part $index was still an OPPO metadata response",
+                )
+                client.prepareGet(part.url) {
+                    meta.requestHeaders.forEach { (name, value) -> header(name, value) }
+                    header(HttpHeaders.AcceptEncoding, "identity")
+                    header(HttpHeaders.Range, "bytes=0-3")
+                }.execute { response ->
+                    val bytes = ByteArray(4)
+                    val count = response.bodyAsChannel().readAvailable(bytes)
+                    assertTrue(response.status.isSuccess(), "Part $index returned HTTP ${response.status.value}")
+                    assertEquals(4, count, "Part $index did not return four APK magic bytes")
+                    assertTrue(
+                        bytes.contentEquals(byteArrayOf(0x50, 0x4b, 0x03, 0x04)),
+                        "Part $index was not an APK/ZIP response",
                     )
+                }
+                if (System.getenv(FULL_DOWNLOAD_ENV) == "1") {
                     client.prepareGet(part.url) {
                         meta.requestHeaders.forEach { (name, value) -> header(name, value) }
                         header(HttpHeaders.AcceptEncoding, "identity")
-                        header(HttpHeaders.Range, "bytes=0-3")
                     }.execute { response ->
-                        val bytes = ByteArray(4)
-                        val count = response.bodyAsChannel().readAvailable(bytes)
                         assertTrue(response.status.isSuccess(), "Part $index returned HTTP ${response.status.value}")
-                        assertEquals(4, count, "Part $index did not return four APK magic bytes")
-                        assertTrue(
-                            bytes.contentEquals(byteArrayOf(0x50, 0x4b, 0x03, 0x04)),
-                            "Part $index was not an APK/ZIP response",
-                        )
-                    }
-                    if (System.getenv(FULL_DOWNLOAD_ENV) == "1") {
-                        client.prepareGet(part.url) {
-                            meta.requestHeaders.forEach { (name, value) -> header(name, value) }
-                            header(HttpHeaders.AcceptEncoding, "identity")
-                        }.execute { response ->
-                            assertTrue(response.status.isSuccess(), "Part $index returned HTTP ${response.status.value}")
-                            val digest = MessageDigest.getInstance("MD5")
-                            val buffer = ByteArray(128 * 1024)
-                            val channel = response.bodyAsChannel()
-                            var received = 0L
-                            while (true) {
-                                val count = channel.readAvailable(buffer)
-                                if (count < 0) break
-                                if (count == 0) continue
-                                digest.update(buffer, 0, count)
-                                received += count
-                            }
-                            assertEquals(part.size, received, "Part $index was incomplete")
-                            if (part.hash.isNotBlank()) {
-                                val actual = digest.digest().joinToString("") { "%02x".format(it) }
-                                assertEquals(part.hash.lowercase(), actual, "Part $index checksum did not match")
-                            }
+                        val digest = MessageDigest.getInstance("MD5")
+                        val buffer = ByteArray(128 * 1024)
+                        val channel = response.bodyAsChannel()
+                        var received = 0L
+                        while (true) {
+                            val count = channel.readAvailable(buffer)
+                            if (count < 0) break
+                            if (count == 0) continue
+                            digest.update(buffer, 0, count)
+                            received += count
+                        }
+                        assertEquals(part.size, received, "Part $index was incomplete")
+                        if (part.hash.isNotBlank()) {
+                            val actual = digest.digest().joinToString("") { "%02x".format(it) }
+                            assertEquals(part.hash.lowercase(), actual, "Part $index checksum did not match")
                         }
                     }
                 }
-            } finally {
-                profiles.setOppoStoreRegion(originalRegion)
             }
         } finally {
             stopKoin()

@@ -144,9 +144,6 @@
     <string name="profile_source_preset">Preset</string>
     <string name="profile_source_device">From device</string>
     <string name="profile_source_current_device">From current device</string>
-    <string name="profile_store_region">Store region</string>
-    <string name="profile_store_region_china">China</string>
-    <string name="profile_store_region_global">Global</string>
     <string name="profile_save_template">Save as template</string>
     <string name="profile_delete_template_confirm">Delete template "%1$s"?</string>
     <string name="profile_template_name">Template name</string>

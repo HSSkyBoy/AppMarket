@@ -1,8 +1,7 @@
 package com.app.market.viewmodel
 
 import com.app.market.domain.model.market.AppSource
-import com.app.market.domain.model.profile.SamsungStoreRegion
-import com.app.market.domain.model.profile.requestContext
+import com.app.market.domain.model.profile.DefaultSamsungRequestContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -59,10 +58,9 @@ class DeviceProfileFieldsTest {
 
     @Test
     fun samsungRequestValuesChangeProfileSourceToCustom() {
-        val region = SamsungStoreRegion.GLOBAL
-        val defaults = region.requestContext()
+        val defaults = DefaultSamsungRequestContext
 
-        assertFalse(DeviceProfileViewModel.hasCustomSamsungRequestContext(region, defaults))
+        assertFalse(DeviceProfileViewModel.hasCustomSamsungRequestContext(defaults))
         listOf(
             defaults.copy(countryCode = "TST"),
             defaults.copy(language = "test_LANG"),
@@ -70,7 +68,7 @@ class DeviceProfileFieldsTest {
             defaults.copy(mnc = "88"),
             defaults.copy(csc = "TSC"),
         ).forEach { context ->
-            assertTrue(DeviceProfileViewModel.hasCustomSamsungRequestContext(region, context))
+            assertTrue(DeviceProfileViewModel.hasCustomSamsungRequestContext(context))
         }
     }
 }

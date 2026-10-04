@@ -4,10 +4,9 @@ import com.app.market.data.platform.md5
 import com.app.market.data.platform.sha1
 import com.app.market.data.platform.sha256
 import com.app.market.data.remote.xiaomi.epochMillis
+import com.app.market.domain.model.profile.DefaultOppoRequestContext
 import com.app.market.domain.model.profile.MarketProfile
 import com.app.market.domain.model.profile.OppoRequestContext
-import com.app.market.domain.model.profile.OppoStoreRegion
-import com.app.market.domain.model.profile.oppoRequestContext
 import io.ktor.http.Url
 import io.ktor.http.decodeURLQueryComponent
 
@@ -33,7 +32,6 @@ internal object OppoSigner {
         method: String,
         url: String,
         profile: MarketProfile,
-        region: OppoStoreRegion? = null,
         requestContext: OppoRequestContext? = null,
     ): Headers {
         val timestamp = epochMillis()
@@ -68,12 +66,11 @@ internal object OppoSigner {
             "sign" to sign,
             "sg" to sg,
         )
-        (requestContext ?: region?.oppoRequestContext())?.let { context ->
-            values["user-region"] = context.userRegion
-            values["system-locale"] = context.systemLocale
-            values["supported-locales"] = context.supportedLocales
-            values["locale"] = context.locale
-        }
+        val context = requestContext ?: DefaultOppoRequestContext
+        values["user-region"] = context.userRegion
+        values["system-locale"] = context.systemLocale
+        values["supported-locales"] = context.supportedLocales
+        values["locale"] = context.locale
         return Headers(values = values, timestamp = timestamp)
     }
 

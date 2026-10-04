@@ -16,7 +16,6 @@ import com.app.market.domain.model.market.MarketAppInfo
 import com.app.market.domain.model.market.ScreenshotOrientation
 import com.app.market.domain.model.market.SearchPage
 import com.app.market.domain.model.profile.MarketProfile
-import com.app.market.domain.model.profile.OppoStoreRegion
 import com.app.market.domain.model.today.TodayArticle
 import com.app.market.domain.model.today.TodayFeedPage
 import com.app.market.domain.model.update.ManualUpdateRequest
@@ -40,9 +39,8 @@ internal class OppoApi(
 ) {
     suspend fun search(keyword: String, page: Int): SearchPage {
         val profile = profileStore.load(AppSource.OPPO)
-        val region = profileStore.currentOppoStoreRegion()
         val resources = prioritizeOppoSearchResults(
-            fetchSearchResources(keyword, page, profile, region),
+            fetchSearchResources(keyword, page, profile),
             keyword,
         )
         return SearchPage(
@@ -56,29 +54,24 @@ internal class OppoApi(
         keyword: String,
         page: Int,
         profile: MarketProfile,
-        region: OppoStoreRegion,
     ): List<OppoResource> {
-        val isChina = region == OppoStoreRegion.CHINA
-        val pageSize = if (isChina) CN_PAGE_SIZE else GLOBAL_PAGE_SIZE
+        val pageSize = CN_PAGE_SIZE
         val searchUrl = url(
-            region, "/search/v2/search", mapOf(
+            "/search/v2/search", mapOf(
                 "start" to (page * pageSize).toString(),
                 "inputWord" to keyword,
                 "size" to pageSize.toString(),
                 "keyword" to keyword,
-                // Current CN software store 26.x uses type 10/size 20. The global 12.x client still
-                // uses type 9/size 10; mixing the two causes the CN endpoint to return fallback cards.
-                "searchType" to if (isChina) "10" else "9",
+                "searchType" to "10",
             )
         )
-        val response = request(HttpMethod.Post, searchUrl, byteArrayOf(0x0a, 0x00), profile, region)
+        val response = request(HttpMethod.Post, searchUrl, byteArrayOf(0x0a, 0x00), profile)
         return parseOppoResources(response)
     }
 
     suspend fun appDetail(appId: Long, packageName: String, externalQuery: String?): AppDetail {
         val profile = profileStore.load(AppSource.OPPO)
-        val region = profileStore.currentOppoStoreRegion()
-        val resource = appResource(profile, region, appId, packageName, externalQuery)
+        val resource = appResource(profile, appId, packageName, externalQuery)
         val app = toApp(resource)
         return AppDetail(
             app = app,
@@ -100,7 +93,6 @@ internal class OppoApi(
 
     private suspend fun appResource(
         profile: MarketProfile,
-        region: OppoStoreRegion,
         appId: Long,
         packageName: String,
         externalQuery: String?,
@@ -110,30 +102,20 @@ internal class OppoApi(
             search(query, 0).items.firstOrNull { it.packageName == packageName || query == it.packageName }?.appId ?: 0L
         }
         if (resolvedId <= 0L) throw MarketException("OPPO 未收录该应用")
-        // The global catalog can return overseas-only resources whose app IDs are not accepted by
-        // detail/v5. The official client retains the package-name detail/v4 entry point for these
-        // resources; it also works for the regular global catalog. CN continues to use v5/appId.
-        val detailPath: String
+        val detailPath = "/detail/v5/$resolvedId"
         val detailParams = linkedMapOf(
             "query" to DETAIL_FIELDS,
             "installationMode" to "0",
             "notFilterVerId" to "0",
             "extAtd" to "0",
             "source" to "1",
+            "appId" to resolvedId.toString(),
         )
-        if (region == OppoStoreRegion.GLOBAL) {
-            detailPath = "/detail/v4"
-            detailParams["pkg"] = packageName
-        } else {
-            detailPath = "/detail/v5/$resolvedId"
-            detailParams["appId"] = resolvedId.toString()
-        }
         val response = request(
             HttpMethod.Get,
-            url(region, detailPath, detailParams),
+            url(detailPath, detailParams),
             body = null,
             profile = profile,
-            region = region,
         )
         val resources = parseOppoResources(response)
         val resource = resources
@@ -145,9 +127,8 @@ internal class OppoApi(
 
     suspend fun downloadMeta(app: MarketAppInfo): DownloadMeta {
         val profile = profileStore.load(AppSource.OPPO)
-        val region = profileStore.currentOppoStoreRegion()
-        val resource = runCatching { appResource(profile, region, app.appId, app.packageName, null) }.getOrNull()
-        return downloadMetaInternal(app, profile, resource, region)
+        val resource = runCatching { appResource(profile, app.appId, app.packageName, null) }.getOrNull()
+        return downloadMetaInternal(app, profile, resource)
     }
 
     suspend fun downloadUpdateMeta(
@@ -163,7 +144,6 @@ internal class OppoApi(
         currentInstalled: InstalledPackage?,
         profile: MarketProfile,
     ): DownloadMeta {
-        val region = profileStore.currentOppoStoreRegion()
         val installed = currentInstalled ?: InstalledPackage(
             packageName = app.packageName,
             versionCode = app.installedVersionCode,
@@ -176,13 +156,13 @@ internal class OppoApi(
         // Refresh once so an expiring patch URL and its matching full-APK metadata come from the
         // same upgrade response. This is a metadata lookup, not a retry loop.
         val resource = if (installed.versionCode > 0L) {
-            requestUpdates(listOf(installed), profile, region)
+            requestUpdates(listOf(installed), profile)
                 .filter { it.packageName == app.packageName && it.versionCode == app.versionCode }
                 .maxByOrNull(OppoResource::versionCode)
         } else {
             null
         }
-        return downloadMetaInternal(app, profile, resource, region, installed)
+        return downloadMetaInternal(app, profile, resource, installed)
     }
 
     suspend fun checkUpdates(installed: List<InstalledPackage>): List<MarketAppInfo> {
@@ -196,8 +176,7 @@ internal class OppoApi(
         profile: MarketProfile,
     ): List<MarketAppInfo> {
         if (installed.isEmpty()) return emptyList()
-        val region = profileStore.currentOppoStoreRegion()
-        val byPackage = requestUpdates(installed, profile, region).groupBy { it.packageName }
+        val byPackage = requestUpdates(installed, profile).groupBy { it.packageName }
         return installed.mapNotNull { local ->
             byPackage[local.packageName]
                 .orEmpty()
@@ -209,7 +188,6 @@ internal class OppoApi(
 
     suspend fun checkManualUpdate(request: ManualUpdateRequest): com.app.market.domain.model.update.ManualUpdateResult {
         val profile = profileStore.load(AppSource.OPPO)
-        val region = profileStore.currentOppoStoreRegion()
         val installed = InstalledPackage(
             packageName = request.packageName,
             versionCode = request.versionCode,
@@ -220,7 +198,7 @@ internal class OppoApi(
             apkSource = request.apkSource,
             installedBy = request.installedBy,
         )
-        val candidates = requestUpdates(listOf(installed), profile, region)
+        val candidates = requestUpdates(listOf(installed), profile)
             .filter { it.packageName == request.packageName }
         val latest = candidates.maxByOrNull { it.versionCode }
         if (latest != null && latest.versionCode > request.versionCode) {
@@ -242,11 +220,10 @@ internal class OppoApi(
         require(page >= 0) { "page must be non-negative" }
         require(pageSize > 0) { "pageSize must be positive" }
         val profile = profileStore.load(AppSource.OPPO)
-        val region = profileStore.currentOppoStoreRegion()
         val response = request(
             HttpMethod.Get,
             url(
-                region, "/card/store/v4/beauty/weekly", mapOf(
+                "/card/store/v4/beauty/weekly", mapOf(
                     "size" to pageSize.toString(),
                     "start" to (page * pageSize).toString(),
                     "pageId" to BEAUTY_PAGE_ID,
@@ -254,7 +231,6 @@ internal class OppoApi(
             ),
             body = null,
             profile = profile,
-            region = region,
         )
         return parseOppoBeautyFeed(response, pageSize)
     }
@@ -263,13 +239,11 @@ internal class OppoApi(
         val id = snippetId.toLongOrNull()?.takeIf { it > 0L }
             ?: throw MarketException("OPPO 至美奖文章 ID 无效")
         val profile = profileStore.load(AppSource.OPPO)
-        val region = profileStore.currentOppoStoreRegion()
         val response = request(
             HttpMethod.Get,
-            url(region, "/card/store/v5/snippet/$id", mapOf("v" to "3")),
+            url("/card/store/v5/snippet/$id", mapOf("v" to "3")),
             body = null,
             profile = profile,
-            region = region,
         )
         return parseOppoSnippetArticle(id.toString(), response)
     }
@@ -277,14 +251,12 @@ internal class OppoApi(
     private suspend fun requestUpdates(
         installed: List<InstalledPackage>,
         profile: MarketProfile,
-        region: OppoStoreRegion,
     ): List<OppoResource> {
         val response = request(
             HttpMethod.Post,
-            url(region, "/update/global/v1/check"),
+            url("/update/global/v1/check"),
             body = encodeOppoUpdateRequest(installed),
             profile = profile,
-            region = region,
         )
         return parseOppoResources(response)
     }
@@ -293,10 +265,9 @@ internal class OppoApi(
         app: MarketAppInfo,
         profile: MarketProfile,
         resource: OppoResource?,
-        region: OppoStoreRegion,
         installed: InstalledPackage? = null,
     ): DownloadMeta {
-        val requestContext = profileStore.oppoRequestContext(region)
+        val requestContext = profileStore.oppoRequestContext()
         val metadataUrl = (resource?.url ?: app.openLink).takeIf { it.startsWith("http", ignoreCase = true) }
             ?: throw MarketException("OPPO 未提供该应用的完整 APK 下载地址")
         if (metadataUrl.contains("incfs", ignoreCase = true) || metadataUrl.endsWith(".dm", ignoreCase = true)) {
@@ -308,7 +279,6 @@ internal class OppoApi(
                 url = metadataUrl,
                 body = null,
                 profile = profile,
-                region = region,
             )
             parseOppoDownloadFileWrap(response).also { download ->
                 if (download.code != HTTP_OK || download.files.isEmpty()) {
@@ -355,11 +325,11 @@ internal class OppoApi(
                     hash = patch.md5,
                     version = patch.obitVersion,
                     oldApkHash = oldApkHash,
-                    requestHeaders = OppoSigner.headers("GET", patch.url, profile, region, requestContext)
+                    requestHeaders = OppoSigner.headers("GET", patch.url, profile, requestContext)
                         .values.filterKeys { it in DOWNLOAD_HEADERS },
                 )
             }
-        val headers = OppoSigner.headers("GET", url, profile, region, requestContext)
+        val headers = OppoSigner.headers("GET", url, profile, requestContext)
             .values.filterKeys { it in if (downloadFiles == null) DOWNLOAD_HEADERS else CDN_DOWNLOAD_HEADERS }
         return DownloadMeta(
             appId = resource?.appId ?: app.appId,
@@ -392,10 +362,9 @@ internal class OppoApi(
         url: String,
         body: ByteArray?,
         profile: MarketProfile,
-        region: OppoStoreRegion,
     ): ByteArray {
-        val requestContext = profileStore.oppoRequestContext(region)
-        val signed = OppoSigner.headers(method.value, url, profile, region, requestContext)
+        val requestContext = profileStore.oppoRequestContext()
+        val signed = OppoSigner.headers(method.value, url, profile, requestContext)
         val response: HttpResponse = client.request(url) {
             this.method = method
             signed.values.forEach { (name, value) -> header(name, value) }
@@ -416,11 +385,8 @@ internal class OppoApi(
         return if (bytes.size >= 2 && bytes[0] == 0x1f.toByte() && bytes[1] == 0x8b.toByte()) gunzip(bytes) else bytes
     }
 
-    private fun url(region: OppoStoreRegion, path: String, params: Map<String, String> = emptyMap()): String {
-        val host = when (region) {
-            OppoStoreRegion.CHINA -> CN_HOST
-            OppoStoreRegion.GLOBAL -> GLOBAL_HOST
-        }
+    private fun url(path: String, params: Map<String, String> = emptyMap()): String {
+        val host = CN_HOST
         if (params.isEmpty()) return host + path
         return host + path + "?" + urlEncodeParameters(params)
     }
@@ -467,9 +433,7 @@ internal class OppoApi(
 
     private companion object {
         const val CN_HOST = "https://api-cn.store.heytapmobi.com"
-        const val GLOBAL_HOST = "https://api-store-gl.heytapmobile.com"
         const val CN_PAGE_SIZE = 20
-        const val GLOBAL_PAGE_SIZE = 10
         const val MAX_PAGE = 99
         const val BEAUTY_PAGE_ID = "629"
         const val DETAIL_FIELDS = "1,2,3,4,5,6,7,8,9,10,12,15,16,17,18,19,20,22,26,27,30,32,56,64,102,107,112,201"

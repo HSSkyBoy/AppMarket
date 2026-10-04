@@ -1,8 +1,6 @@
 package com.app.market.data.remote.oppo
 
 import com.app.market.di.dataModules
-import com.app.market.domain.model.profile.OppoStoreRegion
-import com.app.market.domain.repository.ProfileRepository
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -18,9 +16,6 @@ class LiveOppoBeautyTest {
         val koin = startKoin { modules(dataModules) }.koin
         try {
             val api = koin.get<OppoApi>()
-            val profiles = koin.get<ProfileRepository>()
-            val originalRegion = profiles.currentOppoStoreRegion()
-            profiles.setOppoStoreRegion(OppoStoreRegion.CHINA)
             val first = api.beautyFeed(page = 0, pageSize = 10)
             val second = api.beautyFeed(page = 1, pageSize = 10)
             val item = first.items.first()
@@ -51,19 +46,6 @@ class LiveOppoBeautyTest {
                         "feed=${feedApp.category}/${feedApp.downloadCount} " +
                         "articleApp=${articleApp.category}/${articleApp.downloadCount} " +
                         "detail=${detail.category}/${detail.downloadCount}",
-            )
-            val globalResult = try {
-                profiles.setOppoStoreRegion(OppoStoreRegion.GLOBAL)
-                runCatching { api.beautyFeed(page = 0, pageSize = 10) }
-            } finally {
-                profiles.setOppoStoreRegion(originalRegion)
-            }
-            println(
-                "[oppo-beauty-global] " +
-                        globalResult.fold(
-                            onSuccess = { "items=${it.items.size} hasMore=${it.hasMore}" },
-                            onFailure = { "error=${it.message}" },
-                        ),
             )
         } finally {
             stopKoin()
