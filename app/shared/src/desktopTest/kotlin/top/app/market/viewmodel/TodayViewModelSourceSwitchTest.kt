@@ -97,6 +97,12 @@ private class FakeMarketSourceRepository : MarketSourceRepository {
     }
 
     override suspend fun search(source: AppSource, keyword: String, page: Int): SearchPage = error("Not used")
+    override suspend fun categoryApps(
+        source: AppSource,
+        category: top.app.market.domain.model.market.AppCategory,
+        subCategory: top.app.market.domain.model.market.AppSubCategory,
+        page: Int,
+    ): SearchPage = error("Not used")
     override suspend fun appDetail(
         source: AppSource,
         appId: Long,

@@ -92,6 +92,11 @@ internal class TapTapRepositoryImpl(
         )
     }
 
+    override suspend fun recommendedGames(page: Int, pageSize: Int): SearchPage {
+        val feed = todayFeed(page, pageSize)
+        return SearchPage(feed.items.mapNotNull { it.app }, feed.hasMore)
+    }
+
     override suspend fun todayArticle(rId: String): TodayArticle = withContext(Dispatchers.Default) {
         val appId = rId.toLongOrNull()?.takeIf { it > 0L }
             ?: throw MarketException("TapTap 推荐应用 id 无效")

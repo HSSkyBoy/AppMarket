@@ -16,6 +16,9 @@ import kotlinx.coroutines.flow.Flow
 interface MarketRepository {
     suspend fun search(keyword: String, page: Int = 0): SearchPage
 
+    /** Official category listing (`app.mi.com/categotyAllListApi`), no signature required. */
+    suspend fun categoryApps(categoryId: Int, page: Int = 0): SearchPage
+
     /** Loads only the data required to render the detail page's primary content. */
     suspend fun appDetail(appId: Long, packageName: String, externalQuery: String? = null): AppDetail
 

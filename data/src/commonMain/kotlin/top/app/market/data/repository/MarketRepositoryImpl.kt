@@ -60,6 +60,10 @@ internal class MarketRepositoryImpl(
         result
     }
 
+    override suspend fun categoryApps(categoryId: Int, page: Int): SearchPage = withContext(Dispatchers.Default) {
+        api.categoryApps(categoryId, page)
+    }
+
     override suspend fun appDetail(
         appId: Long,
         packageName: String,

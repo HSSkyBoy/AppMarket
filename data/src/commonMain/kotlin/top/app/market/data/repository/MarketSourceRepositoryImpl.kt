@@ -1,7 +1,10 @@
 ﻿package top.app.market.data.repository
 
 import top.app.market.domain.model.download.DownloadMeta
+import top.app.market.domain.model.market.AppCategory
 import top.app.market.domain.model.market.AppComments
+import top.app.market.domain.model.market.AppSubCategory
+import top.app.market.domain.model.market.XIAOMI_GAME_CATEGORY_ID
 import top.app.market.domain.model.market.AppDetail
 import top.app.market.domain.model.market.AppSource
 import top.app.market.domain.model.market.MarketAppInfo
@@ -44,6 +47,17 @@ internal class MarketSourceRepositoryImpl(
         AppSource.HONOR -> honor.search(keyword, page)
         AppSource.HUAWEI -> huawei.search(keyword, page)
         AppSource.TAPTAP -> tapTap.search(keyword, page)
+    }
+
+    override suspend fun categoryApps(
+        source: AppSource,
+        category: AppCategory,
+        subCategory: AppSubCategory,
+        page: Int,
+    ): SearchPage = when {
+        category == AppCategory.GAMES && source == AppSource.TAPTAP -> tapTap.recommendedGames(page)
+        category == AppCategory.GAMES -> market.categoryApps(XIAOMI_GAME_CATEGORY_ID, page)
+        else -> market.categoryApps(subCategory.xiaomiCategoryId, page)
     }
 
     override suspend fun appDetail(

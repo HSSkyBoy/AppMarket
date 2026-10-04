@@ -155,6 +155,8 @@ class AppDetailExternalLookupTest {
         var sameDeveloperRequests = 0
             private set
 
+        override suspend fun categoryApps(categoryId: Int, page: Int): SearchPage = error("Not used")
+
         override suspend fun search(keyword: String, page: Int): SearchPage =
             error("Package lookup must not use search")
 
