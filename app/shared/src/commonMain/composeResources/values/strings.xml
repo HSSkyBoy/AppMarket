@@ -97,6 +97,13 @@
     <string name="theme_page_scale_range">80% - 110%</string>
     <string name="home_page">Home page</string>
     <string name="home_page_summary">Page opened on launch</string>
+    <string name="language">Language</string>
+    <string name="language_summary">Application display language</string>
+    <string name="language_system">System default</string>
+    <string name="language_zh_tw">Chinese (Taiwan)</string>
+    <string name="language_zh_hk">Chinese (Hong Kong)</string>
+    <string name="language_zh_cn">Chinese Simplified</string>
+    <string name="language_en">English</string>
     <string name="remove_search_ads">Remove promoted apps</string>
     <string name="remove_search_ads_summary">Applies to the current search source. Hide promoted results.</string>
     <string name="filter_quick_games">Remove quick apps</string>

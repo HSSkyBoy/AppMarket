@@ -98,6 +98,13 @@
     <string name="theme_page_scale_range">80% - 110%</string>
     <string name="home_page">首頁</string>
     <string name="home_page_summary">開 App 嗰陣顯示嘅頁面</string>
+    <string name="language">語言</string>
+    <string name="language_summary">應用程式顯示語言</string>
+    <string name="language_system">跟隨系統</string>
+    <string name="language_zh_tw">繁體中文（台灣）</string>
+    <string name="language_zh_hk">繁體中文（粵語）</string>
+    <string name="language_zh_cn">簡體中文</string>
+    <string name="language_en">English</string>
     <string name="remove_search_ads">去除廣告推廣 App</string>
     <string name="remove_search_ads_summary">對當前搜尋來源生效，隱藏標記為推廣嘅結果</string>
     <string name="filter_quick_games">去除快應用</string>

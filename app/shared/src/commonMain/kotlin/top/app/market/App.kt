@@ -1,4 +1,4 @@
-﻿package top.app.market
+package top.app.market
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,6 +46,7 @@ import top.app.market.ui.theme.LocalEnableBlur
 import top.app.market.ui.theme.LocalEnableFloatingBottomBar
 import top.app.market.ui.theme.LocalEnableFloatingBottomBarBlur
 import top.app.market.ui.theme.LocalEnableNavigationBadge
+import top.app.market.ui.util.AppLocaleProvider
 import top.app.market.ui.util.LocalStripAppNameSubtitle
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
@@ -73,6 +74,7 @@ fun App(
     val uiPlatform = koinInject<UiPlatform>()
     val updatePrefs = koinInject<UpdatePreferencesRepository>()
     val themePrefs = koinInject<ThemePreferencesRepository>()
+    val appLanguage by themePrefs.appLanguage.collectAsStateWithLifecycle()
     val enableBlur by themePrefs.enableBlur.collectAsStateWithLifecycle()
     val enableFloatingBottomBar by themePrefs.enableFloatingBottomBar.collectAsStateWithLifecycle()
     val enableFloatingBottomBarBlur by themePrefs.enableFloatingBottomBarBlur.collectAsStateWithLifecycle()
@@ -101,44 +103,46 @@ fun App(
     LaunchedEffect(Unit) { runCatching { profileStore.syncFromServerIfDue() } }
     val controller = remember { ThemeController(ColorSchemeMode.System) }
     ApplyPredictiveBackPreference(enablePredictiveBack)
-    MiuixTheme(controller = controller) {
-        val systemDensity = LocalDensity.current
-        val scaledDensity = remember(systemDensity, pageScale) {
-            Density(systemDensity.density * pageScale, systemDensity.fontScale)
-        }
-        CompositionLocalProvider(
-            LocalContentColor provides MiuixTheme.colorScheme.onBackground,
-            LocalStripAppNameSubtitle provides stripAppNameSubtitle,
-            LocalDensity provides scaledDensity,
-            LocalEnableBlur provides enableBlur,
-            LocalEnableFloatingBottomBar provides enableFloatingBottomBar,
-            LocalEnableFloatingBottomBarBlur provides enableFloatingBottomBarBlur,
-            LocalEnableNavigationBadge provides enableNavigationBadge,
-        ) {
-            AppNavigation(
-                externalDetailPackageName = externalDetailPackageName,
-                externalDetailQuery = externalDetailQuery,
-                onExternalDetailConsumed = onExternalDetailConsumed,
-                externalSearchKeyword = externalSearchKeyword,
-                onExternalSearchConsumed = onExternalSearchConsumed,
-                externalOpenDownloads = externalOpenDownloads,
-                onExternalDownloadsConsumed = onExternalDownloadsConsumed,
-            )
-            InstallFailureDialog(
-                show = failureMessage != null,
-                message = failureMessage ?: retainedFailureMessage,
-                onDismiss = downloads::consumePendingUserAction,
-            )
-            UnknownSourcesPermissionDialog(
-                show = pendingUserAction == InstallUserAction.GrantUnknownSourcesPermission,
-                onDismiss = downloads::consumePendingUserAction,
-                onOpenSettings = {
-                    downloads.consumePendingUserAction()
-                    if (!uiPlatform.openUnknownSourcesSettings()) {
-                        uiPlatform.showToast(settingsUnavailableMessage)
-                    }
-                },
-            )
+    AppLocaleProvider(localeTag = appLanguage) {
+        MiuixTheme(controller = controller) {
+            val systemDensity = LocalDensity.current
+            val scaledDensity = remember(systemDensity, pageScale) {
+                Density(systemDensity.density * pageScale, systemDensity.fontScale)
+            }
+            CompositionLocalProvider(
+                LocalContentColor provides MiuixTheme.colorScheme.onBackground,
+                LocalStripAppNameSubtitle provides stripAppNameSubtitle,
+                LocalDensity provides scaledDensity,
+                LocalEnableBlur provides enableBlur,
+                LocalEnableFloatingBottomBar provides enableFloatingBottomBar,
+                LocalEnableFloatingBottomBarBlur provides enableFloatingBottomBarBlur,
+                LocalEnableNavigationBadge provides enableNavigationBadge,
+            ) {
+                AppNavigation(
+                    externalDetailPackageName = externalDetailPackageName,
+                    externalDetailQuery = externalDetailQuery,
+                    onExternalDetailConsumed = onExternalDetailConsumed,
+                    externalSearchKeyword = externalSearchKeyword,
+                    onExternalSearchConsumed = onExternalSearchConsumed,
+                    externalOpenDownloads = externalOpenDownloads,
+                    onExternalDownloadsConsumed = onExternalDownloadsConsumed,
+                )
+                InstallFailureDialog(
+                    show = failureMessage != null,
+                    message = failureMessage ?: retainedFailureMessage,
+                    onDismiss = downloads::consumePendingUserAction,
+                )
+                UnknownSourcesPermissionDialog(
+                    show = pendingUserAction == InstallUserAction.GrantUnknownSourcesPermission,
+                    onDismiss = downloads::consumePendingUserAction,
+                    onOpenSettings = {
+                        downloads.consumePendingUserAction()
+                        if (!uiPlatform.openUnknownSourcesSettings()) {
+                            uiPlatform.showToast(settingsUnavailableMessage)
+                        }
+                    },
+                )
+            }
         }
     }
 }

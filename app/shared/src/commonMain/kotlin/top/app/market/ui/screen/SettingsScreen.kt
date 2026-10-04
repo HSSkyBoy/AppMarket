@@ -1,4 +1,4 @@
-﻿package top.app.market.ui.screen
+package top.app.market.ui.screen
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,13 +7,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
+import org.koin.compose.koinInject
 import top.app.market.domain.model.market.AppSource
 import top.app.market.domain.model.preference.HomePage
+import top.app.market.domain.repository.ThemePreferencesRepository
 import top.app.market.resources.Res
 import top.app.market.resources.about
 import top.app.market.resources.about_summary
@@ -38,6 +44,13 @@ import top.app.market.resources.installer_delta_update
 import top.app.market.resources.installer_delta_update_summary
 import top.app.market.resources.installer_section
 import top.app.market.resources.installer_section_summary
+import top.app.market.resources.language
+import top.app.market.resources.language_en
+import top.app.market.resources.language_summary
+import top.app.market.resources.language_system
+import top.app.market.resources.language_zh_cn
+import top.app.market.resources.language_zh_hk
+import top.app.market.resources.language_zh_tw
 import top.app.market.resources.manual_update
 import top.app.market.resources.manual_update_summary
 import top.app.market.resources.nav_search
@@ -101,6 +114,10 @@ fun SettingsTab(
     onNavigateAbout: () -> Unit,
     onNavigateTheme: () -> Unit,
 ) {
+    val themePreferences = koinInject<ThemePreferencesRepository>()
+    val enabledTabs by themePreferences.enabledTabs.collectAsStateWithLifecycle()
+    val appLanguage by themePreferences.appLanguage.collectAsStateWithLifecycle()
+    val coroutineScope = rememberCoroutineScope()
     val updatesState by updatesViewModel.uiState.collectAsStateWithLifecycle()
     val installerState by installerSettingsViewModel.uiState.collectAsStateWithLifecycle()
     val homePage by updatesViewModel.homePage.collectAsStateWithLifecycle()
@@ -310,11 +327,22 @@ fun SettingsTab(
             }
             item { SectionTitle(text = stringResource(Res.string.general)) }
             item {
-                // 桌面端无「更新」页，首页选项相应剔除
-                val homePageOptions = if (appManagementSupported) {
-                    listOf(HomePage.TODAY, HomePage.UPDATES, HomePage.SEARCH)
-                } else {
-                    listOf(HomePage.TODAY, HomePage.SEARCH)
+                // 桌面端无「更新」页，且根据用户启用的分頁相應剔除
+                val homePageOptions = remember(appManagementSupported, enabledTabs) {
+                    buildList {
+                        if ("today" in enabledTabs) add(HomePage.TODAY)
+                        if (appManagementSupported && "updates" in enabledTabs) add(HomePage.UPDATES)
+                        if ("search" in enabledTabs) add(HomePage.SEARCH)
+                    }.ifEmpty { listOf(HomePage.TODAY) }
+                }
+                val languageOptions = remember {
+                    listOf(
+                        LanguageOption(null, Res.string.language_system),
+                        LanguageOption("zh-TW", Res.string.language_zh_tw),
+                        LanguageOption("zh-HK", Res.string.language_zh_hk),
+                        LanguageOption("zh-CN", Res.string.language_zh_cn),
+                        LanguageOption("en", Res.string.language_en),
+                    )
                 }
                 Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                     WindowDropdownPreference(
@@ -323,6 +351,17 @@ fun SettingsTab(
                         items = homePageOptions.map { stringResource(it.labelRes) },
                         selectedIndex = homePageOptions.indexOf(homePage).coerceAtLeast(0),
                         onSelectedIndexChange = { updatesViewModel.setHomePage(homePageOptions[it]) },
+                    )
+                    WindowDropdownPreference(
+                        title = stringResource(Res.string.language),
+                        summary = stringResource(Res.string.language_summary),
+                        items = languageOptions.map { stringResource(it.titleRes) },
+                        selectedIndex = languageOptions.indexOfFirst { it.code == appLanguage }.takeIf { it >= 0 } ?: 0,
+                        onSelectedIndexChange = { index ->
+                            coroutineScope.launch {
+                                themePreferences.setAppLanguage(languageOptions[index].code)
+                            }
+                        },
                     )
                     SwitchPreference(
                         title = stringResource(Res.string.strip_name_subtitle),
@@ -357,3 +396,8 @@ private val HomePage.labelRes
         HomePage.UPDATES -> Res.string.nav_updates
         HomePage.SEARCH -> Res.string.nav_search
     }
+
+private data class LanguageOption(
+    val code: String?,
+    val titleRes: StringResource,
+)

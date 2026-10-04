@@ -98,6 +98,13 @@
     <string name="theme_page_scale_range">80% - 110%</string>
     <string name="home_page">首页</string>
     <string name="home_page_summary">启动时打开的页面</string>
+    <string name="language">语言</string>
+    <string name="language_summary">应用显示语言</string>
+    <string name="language_system">跟随系统</string>
+    <string name="language_zh_tw">繁体中文（台湾）</string>
+    <string name="language_zh_hk">繁体中文（粤语）</string>
+    <string name="language_zh_cn">简体中文</string>
+    <string name="language_en">English</string>
     <string name="remove_search_ads">去除推广应用</string>
     <string name="remove_search_ads_summary">对当前搜索来源生效，隐藏标记为推广的结果</string>
     <string name="filter_quick_games">去除快应用</string>
