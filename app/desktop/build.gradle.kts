@@ -28,7 +28,7 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "com.app.market.MainKt"
+        mainClass = "top.app.market.MainKt"
 
         buildTypes.release.proguard {
             optimize = false

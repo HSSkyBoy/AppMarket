@@ -34,7 +34,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = ProjectConfig.PACKAGE_NAME
+        applicationId = ProjectConfig.APPLICATION_ID
         minSdk = ProjectConfig.Android.MIN_SDK
         targetSdk = ProjectConfig.Android.TARGET_SDK
         versionCode = resolveVersionCode()
