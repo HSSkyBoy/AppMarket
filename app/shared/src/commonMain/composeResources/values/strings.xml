@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">App Store</string>
+    <string name="app_name">App Market</string>
 
     <!-- Navigation -->
     <string name="nav_today">Today</string>
@@ -76,6 +76,7 @@
     <string name="general">General</string>
     <string name="theme">Theme</string>
     <string name="theme_summary">Appearance and navigation behavior</string>
+    <string name="theme_section_appearance">Appearance</string>
     <string name="theme_enable_blur">Blur</string>
     <string name="theme_enable_blur_summary">Use blurred surfaces where supported</string>
     <string name="theme_floating_bottom_bar">Floating bottom bar</string>
@@ -84,6 +85,11 @@
     <string name="theme_enable_glass_summary">Apply a translucent glass effect to the floating bottom bar</string>
     <string name="theme_navigation_badge">Navigation badge</string>
     <string name="theme_navigation_badge_summary">Show the number of apps that can be updated</string>
+    <string name="theme_section_navigation">Navigation items</string>
+    <string name="theme_tab_today_summary">Show Today recommendations and articles</string>
+    <string name="theme_tab_updates_summary">Show app update status and history</string>
+    <string name="theme_tab_search_summary">Search applications across sources</string>
+    <string name="theme_section_interaction">Interaction</string>
     <string name="theme_predictive_back">Predictive back</string>
     <string name="theme_predictive_back_summary">Enable predictive back gestures</string>
     <string name="theme_page_scale">Interface scale</string>

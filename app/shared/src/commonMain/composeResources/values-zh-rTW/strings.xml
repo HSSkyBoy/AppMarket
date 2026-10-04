@@ -1,0 +1,266 @@
+<resources>
+    <string name="app_name">應用程式商店</string>
+
+    <!-- Navigation -->
+    <string name="nav_updates">更新</string>
+    <string name="nav_search">搜尋</string>
+    <string name="nav_settings">設定</string>
+    <string name="nav_today">今日</string>
+
+    <!-- Common -->
+    <string name="back">返回</string>
+    <string name="cancel">取消</string>
+    <string name="delete">刪除</string>
+    <string name="save">儲存</string>
+    <string name="saved">已儲存</string>
+    <string name="submit">送出</string>
+    <string name="restore">還原</string>
+    <string name="read">讀取</string>
+    <string name="loading">載入中…</string>
+    <string name="view">檢視</string>
+    <string name="view_more">更多</string>
+
+    <!-- Today -->
+    <string name="featured">精選</string>
+    <string name="recommended">推薦</string>
+    <string name="golden_award">金米獎</string>
+    <string name="today_home">首頁</string>
+
+    <!-- Actions -->
+    <string name="install">安裝</string>
+    <string name="download">下載</string>
+    <string name="update">更新</string>
+    <string name="open">開啟</string>
+    <string name="reinstall">重新下載</string>
+    <string name="cancel_download">取消下載</string>
+    <string name="more_options">更多選項</string>
+    <string name="open_in_other_app_store">使用其他應用商店開啟</string>
+    <string name="no_other_app_store">未找到其他應用商店</string>
+    <string name="save_image">儲存圖片</string>
+    <string name="downloading_short">下載中</string>
+    <string name="download_paused">已暫停</string>
+    <string name="download_pause">暫停</string>
+    <string name="download_resume">繼續</string>
+    <string name="open_failed">無法開啟應用程式</string>
+    <string name="download_failed">下載失敗</string>
+    <string name="reserve">預約</string>
+
+    <!-- Updates -->
+    <string name="updates_title">應用程式更新</string>
+    <string name="check_updates">檢查更新</string>
+    <string name="available_updates">可更新應用程式</string>
+    <string name="num_updates_pending">%1$d 個應用程式待更新</string>
+    <string name="update_all">全部更新</string>
+    <string name="show_system_apps">顯示系統應用程式</string>
+    <string name="show_system_apps_summary">在可更新列表中包含系統應用程式</string>
+    <string name="no_updates">所有應用程式均為最新版本</string>
+    <string name="update_check_failed">檢查更新失敗</string>
+    <string name="go_to_settings">前往授權</string>
+    <string name="app_list_permission_required">需要授予應用程式列表權限才能檢查更新</string>
+    <string name="app_list_permission_refresh_hint">如果您已經授予權限，可能需要下拉重新整理以載入應用程式列表。</string>
+    <string name="no_change_log">暫無更新日誌</string>
+    <string name="expand_change_log">展開</string>
+    <string name="version_transition_label">版本:</string>
+    <string name="version_transition">%1$s → %2$s</string>
+    <string name="collapse_change_log">收起</string>
+
+    <!-- Search -->
+    <string name="search_hint">搜尋應用程式</string>
+    <string name="search_button">搜尋</string>
+    <string name="no_results">未找到結果</string>
+    <string name="search_failed">搜尋失敗</string>
+    <string name="search_history">搜尋歷史</string>
+    <string name="clear_history">清除歷史</string>
+
+    <!-- Settings -->
+    <string name="settings">設定</string>
+    <string name="general">一般</string>
+    <string name="theme">主題</string>
+    <string name="theme_summary">外觀與導航行為</string>
+    <string name="theme_section_appearance">外觀</string>
+    <string name="theme_enable_blur">模糊</string>
+    <string name="theme_enable_blur_summary">在支援的裝置上使用模糊表面</string>
+    <string name="theme_floating_bottom_bar">懸浮底欄</string>
+    <string name="theme_floating_bottom_bar_summary">將底部導航欄替換為懸浮樣式</string>
+    <string name="theme_enable_glass">液態玻璃</string>
+    <string name="theme_enable_glass_summary">為懸浮底欄套用半透明玻璃效果</string>
+    <string name="theme_navigation_badge">導航欄標記</string>
+    <string name="theme_navigation_badge_summary">顯示可更新應用程式數量</string>
+    <string name="theme_section_navigation">導航欄項目</string>
+    <string name="theme_tab_today_summary">顯示今日推薦與精選內容</string>
+    <string name="theme_tab_updates_summary">顯示應用程式更新狀態與紀錄</string>
+    <string name="theme_tab_search_summary">跨資料來源搜尋應用程式</string>
+    <string name="theme_section_interaction">手勢與縮放</string>
+    <string name="theme_predictive_back">預測性返回</string>
+    <string name="theme_predictive_back_summary">啟用預測性返回手勢</string>
+    <string name="theme_page_scale">介面縮放</string>
+    <string name="theme_page_scale_summary">調整介面顯示大小</string>
+    <string name="theme_page_scale_range">80% - 110%</string>
+    <string name="home_page">首頁</string>
+    <string name="home_page_summary">啟動時開啟的頁面</string>
+    <string name="remove_search_ads">去除推廣應用程式</string>
+    <string name="remove_search_ads_summary">對當前搜尋來源生效，隱藏標記為推廣的結果</string>
+    <string name="filter_quick_games">去除快應用</string>
+    <string name="filter_quick_games_summary">對當前搜尋來源生效，隱藏標記為快應用的結果</string>
+    <string name="filter_reservation_apps">去除預約應用程式</string>
+    <string name="filter_reservation_apps_summary">對當前搜尋來源生效，隱藏尚未上線的預約應用程式</string>
+    <string name="strip_name_subtitle">最佳化應用程式名稱</string>
+    <string name="strip_name_subtitle_summary">清理應用程式名稱中的推廣語，可能出現誤裁</string>
+    <string name="search_ad_tag">推廣</string>
+    <string name="search_quickapp_tag">快應用</string>
+    <string name="search_sources">搜尋來源</string>
+    <string name="search_sources_summary">用於搜尋與應用程式詳情</string>
+    <string name="update_source">更新來源</string>
+    <string name="update_source_summary">用於檢查應用程式更新</string>
+    <string name="today_source">今日來源</string>
+    <string name="today_source_summary">用於今日頁面的內容</string>
+    <string name="source_xiaomi">Xiaomi</string>
+    <string name="source_vivo">vivo</string>
+    <string name="source_wandoujia">豌豆莢</string>
+    <string name="source_oppo">OPPO</string>
+    <string name="source_samsung">三星</string>
+    <string name="source_honor">榮耀</string>
+    <string name="source_huawei">華為</string>
+    <string name="source_taptap">TapTap</string>
+    <string name="historical_versions">歷史版本</string>
+    <string name="historical_versions_summary">檢視全部版本</string>
+    <string name="historical_versions_title">%1$s的歷史版本</string>
+    <string name="no_historical_versions">暫無歷史版本</string>
+    <string name="retry">重試</string>
+    <string name="show_app_comments">顯示使用者評論</string>
+    <string name="show_app_comments_summary">當前搜尋來源提供評論時，在詳情頁顯示</string>
+    <string name="show_same_developer">顯示同開發者應用程式</string>
+    <string name="show_same_developer_summary">當前搜尋來源提供同開發者列表時，在詳情頁顯示</string>
+    <string name="show_promotions">顯示優惠活動</string>
+    <string name="show_promotions_summary">當前搜尋來源提供優惠活動時，在詳情頁顯示</string>
+    <string name="manual_update">手動檢查更新</string>
+    <string name="manual_update_summary">按套件名稱與版本號查詢單個應用程式的更新</string>
+    <string name="manual_update_package">套件名稱（packageName）</string>
+    <string name="manual_update_version_code">版本號（versionCode）</string>
+    <string name="manual_update_check">請求</string>
+    <string name="manual_update_not_found">伺服器未開放該版本 APK</string>
+    <string name="manual_update_no_apk">伺服器未開放該版本 APK</string>
+    <string name="manual_update_recognized_no_update">伺服端識別到該套件，但針對當前輸入版本和裝置資訊未返回可下載更新</string>
+    <string name="manual_update_required">套件名稱和當前版本號必填</string>
+    <string name="manual_update_current">當前：%1$s（%2$s）</string>
+    <string name="manual_update_available">可用：%1$s（%2$s）</string>
+    <string name="device_profile">裝置資訊</string>
+    <string name="device_profile_summary">請求使用的裝置指紋與版本參數</string>
+    <string name="profile_source">資訊來源</string>
+    <string name="profile_source_custom">自訂</string>
+    <string name="profile_source_preset">預設資訊</string>
+    <string name="profile_source_device">從裝置獲取</string>
+    <string name="profile_source_current_device">從當前裝置獲取</string>
+    <string name="profile_save_template">另存為範本</string>
+    <string name="profile_delete_template_confirm">確定刪除範本「%1$s」嗎？</string>
+    <string name="profile_template_name">範本名稱</string>
+
+    <!-- Installer -->
+    <string name="installer_section">安裝方式</string>
+    <string name="installer_section_summary">選擇安裝器與安裝包儲存選項</string>
+    <string name="installer_mode_default">標準安裝</string>
+    <string name="installer_mode_root">Root 靜默安裝</string>
+    <string name="installer_mode_shizuku">Shizuku 靜默安裝</string>
+    <string name="installer_mode_third_party">第三方安裝器</string>
+    <string name="installer_mode_default_summary">系統確認安裝，有系統權限時靜默</string>
+    <string name="installer_mode_root_summary">需要 root 權限</string>
+    <string name="installer_mode_shizuku_summary">需要 Shizuku 正在運行並已授權</string>
+    <string name="installer_mode_third_party_summary">選擇能夠處理安裝包的應用程式</string>
+    <string name="installer_pick">選擇安裝器</string>
+    <string name="installer_pick_hint">請選擇應用程式</string>
+    <string name="installer_none">沒有可用的安裝器</string>
+    <string name="install_permission_title">需要安裝權限</string>
+    <string name="install_permission_message">繼續安裝前，請允許本應用程式安裝未知來源應用程式。</string>
+    <string name="install_permission_settings_unavailable">無法開啟安裝權限設定</string>
+    <string name="install_failed_title">安裝失敗</string>
+    <string name="installing_short">正在安裝</string>
+    <string name="install_waiting_message">正在準備安裝「%1$s」…</string>
+    <string name="install_success_title">安裝成功</string>
+    <string name="install_success_message">「%1$s」已成功安裝。</string>
+    <string name="waiting_install_confirmation">等待安裝完成</string>
+    <string name="installer_delta_update">增量更新</string>
+    <string name="installer_delta_update_summary">可用時下載補丁包並合成為 APK</string>
+    <string name="installer_delta_fallback_notice">增量回退提示</string>
+    <string name="installer_delta_fallback_notice_summary">補丁無法合成、改為下載完整包時彈出提示</string>
+    <string name="installer_delta_fallback_toast">%1$s 增量更新失敗，回退完整下載：%2$s</string>
+    <string name="installer_save_to_downloads">儲存到 Download</string>
+    <string name="installer_save_to_downloads_summary">安裝時同時儲存到系統 Download 目錄</string>
+    <string name="installer_no_user_action">無需使用者確認</string>
+    <string name="installer_no_user_action_summary">嘗試在無需使用者操作的情況下安裝應用程式</string>
+    <string name="installer_delete_after_install">安裝完成刪除安裝包</string>
+    <string name="installer_delete_after_install_summary">僅在安裝成功後刪除 Download 中的安裝包</string>
+    <string name="xiaomi_island_optimization">小米超級島最佳化</string>
+    <string name="focus_notification_optimization">小米焦點通知最佳化</string>
+    <string name="xiaomi_island_optimization_summary">請確保授權 Shizuku 或使用模組繞過白名單</string>
+
+    <!-- App detail -->
+    <string name="app_detail">應用程式詳情</string>
+    <string name="detail_failed">載入詳情失敗</string>
+    <string name="preview">預覽</string>
+    <string name="video_play">播放影片</string>
+    <string name="video_pause">暫停</string>
+    <string name="video_close">關閉</string>
+    <string name="video_mute">靜音</string>
+    <string name="video_unmute">取消靜音</string>
+    <string name="video_load_failed">影片播放失敗</string>
+    <string name="featured_offers">優惠活動</string>
+    <string name="view_offer">檢視活動</string>
+    <string name="open_link_failed">無法開啟連結</string>
+    <string name="introduction">應用程式介紹</string>
+    <string name="change_log">更新日誌</string>
+    <string name="app_info">應用程式資訊</string>
+    <string name="category">分類</string>
+    <string name="age_rating">年齡分級</string>
+    <string name="download_count">下載次數</string>
+    <string name="registration_num">備案號</string>
+    <string name="privacy_policy">隱私權政策</string>
+    <string name="tap_to_open">點擊開啟</string>
+    <string name="comments_and_scores">評論與評分</string>
+    <string name="num_comments">%1$d 則評價</string>
+    <string name="same_developer">同開發者應用程式</string>
+    <string name="app_version">版本</string>
+    <string name="app_update_time">更新時間</string>
+    <string name="app_size">大小</string>
+    <string name="package_name">套件名稱</string>
+
+    <!-- Ignored apps -->
+    <string name="ignored_apps">忽略的更新</string>
+    <string name="ignored_apps_summary">檢視並還原已忽略的應用程式更新</string>
+    <string name="ignored_permanent">永久忽略更新</string>
+    <string name="ignored_once">僅忽略本次更新</string>
+    <string name="no_ignored">暫無忽略的更新</string>
+    <string name="ignore_once">忽略本次</string>
+    <string name="ignore_permanent">永久忽略</string>
+    <string name="system_app_tag">系統應用程式</string>
+
+    <!-- About -->
+    <string name="about">關於</string>
+    <string name="about_summary">版本資訊與專案地址</string>
+    <string name="about_title">關於</string>
+    <string name="about_open_source_licenses">開放原始碼授權</string>
+
+    <!-- Update history -->
+    <string name="update_history">更新歷史</string>
+    <string name="update_history_summary">檢視透過本應用程式完成的安裝與更新</string>
+    <string name="saved_packages">儲存的安裝包</string>
+    <string name="saved_packages_summary">管理已下載的安裝包</string>
+    <string name="no_saved_packages">暫無儲存的安裝包</string>
+    <string name="settings_section_download_install">下載與安裝</string>
+    <string name="downloading_apps">下載中的應用程式</string>
+    <string name="downloading_apps_summary">檢視和管理進行中的下載任務</string>
+    <string name="downloading_apps_empty">暫無下載任務</string>
+    <string name="download_ready">待安裝</string>
+    <string name="download_finished">已完成</string>
+    <string name="saved_package_delete_confirm">確定刪除「%1$s」？</string>
+    <string name="no_update_history">暫無更新記錄</string>
+    <string name="update_history_clear">清除記錄</string>
+    <string name="update_history_clear_confirm">確定清除全部更新記錄？</string>
+    <string name="update_history_first_install">安裝 %1$s</string>
+    <string name="confirm">確定</string>
+    <string name="date_today">今天</string>
+    <string name="date_yesterday">昨天</string>
+    <string name="date_full">%1$d 年 %2$d 月 %3$d 日</string>
+    <string name="image_saved">已儲存到 Pictures/AppMarket</string>
+    <string name="image_save_failed">儲存圖片失敗</string>
+    <string name="image_save_unsupported">儲存圖片僅在 Android 上可用</string>
+</resources>

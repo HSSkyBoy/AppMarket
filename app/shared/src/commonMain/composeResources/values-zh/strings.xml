@@ -77,6 +77,7 @@
     <string name="general">通用</string>
     <string name="theme">主题</string>
     <string name="theme_summary">外观与导航行为</string>
+    <string name="theme_section_appearance">外观</string>
     <string name="theme_enable_blur">模糊</string>
     <string name="theme_enable_blur_summary">在支持的设备上使用模糊表面</string>
     <string name="theme_floating_bottom_bar">悬浮底栏</string>
@@ -85,6 +86,11 @@
     <string name="theme_enable_glass_summary">为悬浮底栏应用半透明玻璃效果</string>
     <string name="theme_navigation_badge">导航栏角标</string>
     <string name="theme_navigation_badge_summary">显示可更新应用数量</string>
+    <string name="theme_section_navigation">导航栏项目</string>
+    <string name="theme_tab_today_summary">显示今日推荐与精选内容</string>
+    <string name="theme_tab_updates_summary">显示应用更新状态与记录</string>
+    <string name="theme_tab_search_summary">跨数据源搜索应用</string>
+    <string name="theme_section_interaction">手势与缩放</string>
     <string name="theme_predictive_back">预测性返回</string>
     <string name="theme_predictive_back_summary">启用预测性返回手势</string>
     <string name="theme_page_scale">界面缩放</string>
