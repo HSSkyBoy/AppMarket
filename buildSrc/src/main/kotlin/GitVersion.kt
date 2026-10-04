@@ -1,9 +1,10 @@
 import org.gradle.api.Project
 
+const val VERSION_CODE_BASE = 220
 const val GitVersionCodeFallback = 0
 
-/** 提交总数，用作 versionCode（等价于 `git rev-list --count HEAD`）。失败时返回回退值。 */
-fun Project.getGitVersionCode(): Int =
+/** 提交总数（等价于 `git rev-list --count HEAD`）。失败时返回回退值。 */
+fun Project.getGitCommitCount(): Int =
     runCatching {
         providers.exec {
             commandLine("git", "rev-list", "--count", "HEAD")
@@ -11,12 +12,13 @@ fun Project.getGitVersionCode(): Int =
     }.getOrDefault(GitVersionCodeFallback)
 
 /**
- * 先尝试 git 提交数。大于等于 [ProjectConfig.VERSION_CODE] 时采用该值，
+ * 220 + 当前分支 commit 数。
  * 本地构建还会把常量回写到 [ProjectConfig]；失败或小于现有值时沿用 VERSION_CODE。
  */
 fun Project.resolveVersionCode(): Int {
+    val gitCount = getGitCommitCount()
+    val gitCode = if (gitCount > 0) VERSION_CODE_BASE + gitCount else GitVersionCodeFallback
     val baseline = ProjectConfig.VERSION_CODE
-    val gitCode = getGitVersionCode()
     if (gitCode == GitVersionCodeFallback || gitCode < baseline) return baseline
     if (gitCode > baseline && !isCiBuild()) {
         updateProjectVersionCode(gitCode)
