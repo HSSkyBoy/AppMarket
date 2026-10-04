@@ -12,6 +12,7 @@ interface ThemePreferencesRepository {
     val navRailExpanded: StateFlow<Boolean>
     val enablePredictiveBack: StateFlow<Boolean>
     val pageScale: StateFlow<Float>
+    val enabledTabs: StateFlow<Set<String>>
 
     suspend fun setEnableBlur(value: Boolean)
     suspend fun setEnableFloatingBottomBar(value: Boolean)
@@ -20,4 +21,5 @@ interface ThemePreferencesRepository {
     suspend fun setNavRailExpanded(value: Boolean)
     suspend fun setEnablePredictiveBack(value: Boolean)
     suspend fun setPageScale(value: Float)
+    suspend fun setEnabledTabs(value: Set<String>)
 }

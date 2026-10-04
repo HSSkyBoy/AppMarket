@@ -35,6 +35,8 @@ internal class ThemePreferencesRepositoryImpl(
     override val enablePredictiveBack: StateFlow<Boolean> = _enablePredictiveBack.asStateFlow()
     private val _pageScale = MutableStateFlow(1f)
     override val pageScale: StateFlow<Float> = _pageScale.asStateFlow()
+    private val _enabledTabs = MutableStateFlow(DEFAULT_TABS)
+    override val enabledTabs: StateFlow<Set<String>> = _enabledTabs.asStateFlow()
 
     init {
         val arrivals = listOf(
@@ -57,6 +59,9 @@ internal class ThemePreferencesRepositoryImpl(
             },
             observe("pageScale", preferences.observe(ThemePreferenceKeys.PageScale)) {
                 _pageScale.value = it?.toFloatOrNull()?.coerceIn(0.8f, 1.1f) ?: 1f
+            },
+            observe("enabledTabs", preferences.observe(ThemePreferenceKeys.EnabledTabs)) { raw ->
+                _enabledTabs.value = parseTabs(raw)
             },
         )
         scope.launch {
@@ -102,4 +107,19 @@ internal class ThemePreferencesRepositoryImpl(
 
     override suspend fun setPageScale(value: Float) =
         preferences.put(ThemePreferenceKeys.PageScale, value.coerceIn(0.8f, 1.1f).toString())
+
+    override suspend fun setEnabledTabs(value: Set<String>) {
+        val safe = if (value.isEmpty()) DEFAULT_TABS else value
+        preferences.put(ThemePreferenceKeys.EnabledTabs, safe.joinToString(","))
+    }
+
+    private companion object {
+        val DEFAULT_TABS = setOf("today", "updates", "search")
+
+        fun parseTabs(raw: String?): Set<String> {
+            if (raw.isNullOrBlank()) return DEFAULT_TABS
+            val parsed = raw.split(',').map { it.trim().lowercase() }.filter { it.isNotBlank() }.toSet()
+            return if (parsed.isEmpty()) DEFAULT_TABS else parsed
+        }
+    }
 }
