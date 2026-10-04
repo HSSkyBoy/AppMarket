@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -209,6 +210,31 @@ fun FloatingBottomBar(
     tabsCount: Int,
     modifier: Modifier = Modifier,
     isBlurEnabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit,
+) {
+    // 分頁數變動時整體重建：DampedDragAnimation.modifier 的 pointerInput(Unit) 不會隨新實例重啟，
+    // 否則手勢仍沿用舊的 valueRange / tabsCount，指示器與寬度計算全部錯位。
+    key(tabsCount) {
+        FloatingBottomBarImpl(
+            selectedIndex = selectedIndex.coerceIn(0, (tabsCount - 1).coerceAtLeast(0)),
+            onSelected = onSelected,
+            backdrop = backdrop,
+            tabsCount = tabsCount,
+            modifier = modifier,
+            isBlurEnabled = isBlurEnabled,
+            content = content,
+        )
+    }
+}
+
+@Composable
+private fun FloatingBottomBarImpl(
+    selectedIndex: Int,
+    onSelected: (Int) -> Unit,
+    backdrop: Backdrop,
+    tabsCount: Int,
+    modifier: Modifier,
+    isBlurEnabled: Boolean,
     content: @Composable RowScope.() -> Unit,
 ) {
     val isDark = isSystemInDarkTheme()

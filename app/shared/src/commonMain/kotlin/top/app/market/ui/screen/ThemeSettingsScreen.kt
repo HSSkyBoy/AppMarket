@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,9 +20,13 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.app.market.platform.UiPlatform
 import top.app.market.platform.isBlurSettingSupported
 import top.app.market.platform.isPredictiveBackSupported
 import top.app.market.resources.Res
+import top.app.market.resources.nav_search
+import top.app.market.resources.nav_today
+import top.app.market.resources.nav_updates
 import top.app.market.resources.theme
 import top.app.market.resources.theme_enable_blur
 import top.app.market.resources.theme_enable_blur_summary
@@ -37,13 +40,22 @@ import top.app.market.resources.theme_page_scale
 import top.app.market.resources.theme_page_scale_summary
 import top.app.market.resources.theme_predictive_back
 import top.app.market.resources.theme_predictive_back_summary
+import top.app.market.resources.theme_section_appearance
+import top.app.market.resources.theme_section_interaction
+import top.app.market.resources.theme_section_navigation
+import top.app.market.resources.theme_tab_today_summary
+import top.app.market.resources.theme_tab_updates_summary
+import top.app.market.resources.theme_tab_search_summary
 import top.app.market.ui.component.CardSegmentContainer
 import top.app.market.ui.component.MarketScaffold
 import top.app.market.ui.component.PageVerticalPadding
 import top.app.market.ui.component.ScaleDialog
+import top.app.market.ui.component.SectionTitle
 import top.app.market.viewmodel.ThemeSettingsUiState
 import top.app.market.viewmodel.ThemeSettingsViewModel
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import top.yukonga.miuix.kmp.basic.Slider
 import top.yukonga.miuix.kmp.basic.SliderDefaults
 import top.yukonga.miuix.kmp.basic.Text
@@ -53,6 +65,12 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
+private data class NavigationTabOption(
+    val key: String,
+    val titleRes: StringResource,
+    val summaryRes: StringResource,
+)
+
 @Composable
 fun ThemeSettingsScreen(
     viewModel: ThemeSettingsViewModel,
@@ -60,6 +78,7 @@ fun ThemeSettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiPlatform = koinInject<UiPlatform>()
     ThemeSettingsContent(
         state = state,
         onBack = onBack,
@@ -69,8 +88,10 @@ fun ThemeSettingsScreen(
         onEnableNavigationBadge = viewModel::setEnableNavigationBadge,
         onEnablePredictiveBack = viewModel::setEnablePredictiveBack,
         onPageScale = viewModel::setPageScale,
+        onTabEnabled = viewModel::setTabEnabled,
         blurSupported = isBlurSettingSupported(),
         predictiveBackSupported = isPredictiveBackSupported(),
+        appManagementSupported = uiPlatform.packageInstallationSupported,
         modifier = modifier,
     )
 }
@@ -85,13 +106,25 @@ private fun ThemeSettingsContent(
     onEnableNavigationBadge: (Boolean) -> Unit,
     onEnablePredictiveBack: (Boolean) -> Unit,
     onPageScale: (Float) -> Unit,
+    onTabEnabled: (String, Boolean) -> Unit,
     blurSupported: Boolean,
     predictiveBackSupported: Boolean,
+    appManagementSupported: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val layoutDirection = LocalLayoutDirection.current
     var sliderValue by remember(state.pageScale) { mutableFloatStateOf(state.pageScale) }
     var showScaleDialog by rememberSaveable { mutableStateOf(false) }
+
+    val tabOptions = remember(appManagementSupported) {
+        buildList {
+            add(NavigationTabOption("today", Res.string.nav_today, Res.string.theme_tab_today_summary))
+            if (appManagementSupported) {
+                add(NavigationTabOption("updates", Res.string.nav_updates, Res.string.theme_tab_updates_summary))
+            }
+            add(NavigationTabOption("search", Res.string.nav_search, Res.string.theme_tab_search_summary))
+        }
+    }
 
     MarketScaffold(
         title = stringResource(Res.string.theme),
@@ -106,18 +139,23 @@ private fun ThemeSettingsContent(
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             contentPadding = PaddingValues(
-                start = innerPadding.calculateStartPadding(layoutDirection) + 12.dp,
-                end = innerPadding.calculateEndPadding(layoutDirection) + 12.dp,
+                start = innerPadding.calculateStartPadding(layoutDirection),
+                end = innerPadding.calculateEndPadding(layoutDirection),
                 top = innerPadding.calculateTopPadding() + PageVerticalPadding,
                 bottom = innerPadding.calculateBottomPadding() + PageVerticalPadding,
             ),
         ) {
+            item(key = "section-appearance") {
+                SectionTitle(
+                    text = stringResource(Res.string.theme_section_appearance),
+                    topPadding = 0.dp,
+                )
+            }
             if (blurSupported) {
                 item(key = "blur") {
                     CardSegmentContainer(
                         isFirst = true,
                         isLast = false,
-                        horizontalPadding = 0.dp,
                     ) {
                         SwitchPreference(
                             title = stringResource(Res.string.theme_enable_blur),
@@ -132,7 +170,6 @@ private fun ThemeSettingsContent(
                 CardSegmentContainer(
                     isFirst = !blurSupported,
                     isLast = false,
-                    horizontalPadding = 0.dp,
                 ) {
                     SwitchPreference(
                         title = stringResource(Res.string.theme_floating_bottom_bar),
@@ -152,7 +189,6 @@ private fun ThemeSettingsContent(
                         CardSegmentContainer(
                             isFirst = false,
                             isLast = false,
-                            horizontalPadding = 0.dp,
                         ) {
                             SwitchPreference(
                                 title = stringResource(Res.string.theme_enable_glass),
@@ -168,7 +204,6 @@ private fun ThemeSettingsContent(
                 CardSegmentContainer(
                     isFirst = false,
                     isLast = true,
-                    horizontalPadding = 0.dp,
                 ) {
                     SwitchPreference(
                         title = stringResource(Res.string.theme_navigation_badge),
@@ -178,13 +213,42 @@ private fun ThemeSettingsContent(
                     )
                 }
             }
+            item(key = "section-navigation") {
+                SectionTitle(
+                    text = stringResource(Res.string.theme_section_navigation),
+                )
+            }
+            items(
+                count = tabOptions.size,
+                key = { tabOptions[it].key },
+            ) { index ->
+                val option = tabOptions[index]
+                val isChecked = option.key in state.enabledTabs
+                val canToggleOff = state.enabledTabs.size > 1 || !isChecked
+                CardSegmentContainer(
+                    isFirst = index == 0,
+                    isLast = index == tabOptions.lastIndex,
+                ) {
+                    SwitchPreference(
+                        title = stringResource(option.titleRes),
+                        summary = stringResource(option.summaryRes),
+                        checked = isChecked,
+                        enabled = canToggleOff,
+                        onCheckedChange = { onTabEnabled(option.key, it) },
+                    )
+                }
+            }
+
+            item(key = "section-interaction") {
+                SectionTitle(
+                    text = stringResource(Res.string.theme_section_interaction),
+                )
+            }
             if (predictiveBackSupported) {
                 item(key = "predictive-back") {
                     CardSegmentContainer(
                         isFirst = true,
                         isLast = false,
-                        modifier = Modifier.padding(top = PageVerticalPadding),
-                        horizontalPadding = 0.dp,
                     ) {
                         SwitchPreference(
                             title = stringResource(Res.string.theme_predictive_back),
@@ -199,8 +263,6 @@ private fun ThemeSettingsContent(
                 CardSegmentContainer(
                     isFirst = !predictiveBackSupported,
                     isLast = true,
-                    modifier = if (predictiveBackSupported) Modifier else Modifier.padding(top = PageVerticalPadding),
-                    horizontalPadding = 0.dp,
                 ) {
                     ArrowPreference(
                         title = stringResource(Res.string.theme_page_scale),

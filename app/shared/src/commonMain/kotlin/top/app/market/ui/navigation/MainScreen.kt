@@ -116,13 +116,16 @@ fun MainPage(
     val enableFloatingBottomBar = LocalEnableFloatingBottomBar.current
     val enableFloatingBottomBarBlur = LocalEnableFloatingBottomBarBlur.current
     val updatesState by updatesViewModel.uiState.collectAsStateWithLifecycle()
+    val enabledTabs by themePreferences.enabledTabs.collectAsStateWithLifecycle()
     val appManagementSupported = uiPlatform.packageInstallationSupported
-    val tabs = remember(appManagementSupported) {
+    val tabs = remember(appManagementSupported, enabledTabs) {
         buildList {
-            add(MainTab.Today)
-            if (appManagementSupported) add(MainTab.Updates)
-            add(MainTab.Search)
+            if ("today" in enabledTabs) add(MainTab.Today)
+            if (appManagementSupported && "updates" in enabledTabs) add(MainTab.Updates)
+            if ("search" in enabledTabs) add(MainTab.Search)
             add(MainTab.Settings)
+        }.ifEmpty {
+            listOf(MainTab.Today, MainTab.Settings)
         }
     }
     val searchPage = tabs.indexOf(MainTab.Search)
@@ -141,10 +144,12 @@ fun MainPage(
     var notificationPermissionRequested by remember { mutableStateOf(false) }
     var searchFocusRequestId by remember { mutableIntStateOf(0) }
     val onSearchTabClick = {
-        if (selectedPage == searchPage && !mainPagerState.isNavigating) {
-            searchFocusRequestId += 1
-        } else {
-            mainPagerState.animateToPage(searchPage)
+        if (searchPage >= 0) {
+            if (selectedPage == searchPage && !mainPagerState.isNavigating) {
+                searchFocusRequestId += 1
+            } else {
+                mainPagerState.animateToPage(searchPage)
+            }
         }
     }
     val onTabClick: (Int, MainTab) -> Unit = { index, tab ->
@@ -157,10 +162,24 @@ fun MainPage(
         if (!launched) updatesViewModel.startInitialCheck()
     }
 
+    // 分頁集合變動（設定裡開關底欄項目）：按「分頁身份」而非索引保留選中項，
+    // 被關掉的就退回首頁，避免 selectedPage 與 pager 錯位。
+    var lastTabs by remember { mutableStateOf(tabs) }
+    LaunchedEffect(tabs) {
+        val previous = lastTabs
+        if (previous == tabs) return@LaunchedEffect
+        lastTabs = tabs
+        val keptTab = previous.getOrNull(mainPagerState.selectedPage)
+        val target = tabs.indexOf(keptTab).takeIf { it >= 0 } ?: homeIndexOf(homePage)
+        mainPagerState.jumpToPage(target)
+    }
+
     LaunchedEffect(pendingSearchKeyword) {
         val keyword = pendingSearchKeyword ?: return@LaunchedEffect
-        mainPagerState.animateToPage(searchPage)
-        if (keyword.isNotEmpty()) searchViewModel.searchWith(keyword) else searchFocusRequestId += 1
+        if (searchPage >= 0) {
+            mainPagerState.animateToPage(searchPage)
+            if (keyword.isNotEmpty()) searchViewModel.searchWith(keyword) else searchFocusRequestId += 1
+        }
         onPendingSearchConsumed()
     }
 
@@ -194,8 +213,9 @@ fun MainPage(
             state = mainPagerState.pagerState,
             overscrollEffect = null,
             verticalAlignment = Alignment.Top,
+            key = { tabs.getOrNull(it) ?: it },
         ) { page ->
-            when (tabs[page]) {
+            when (tabs.getOrElse(page) { MainTab.Settings }) {
                 MainTab.Today -> TodayTab(
                     viewModel = todayViewModel,
                     updatesViewModel = updatesViewModel.takeIf { appManagementSupported },
@@ -317,7 +337,7 @@ fun MainPage(
                                     bottom = 12.dp + WindowInsets.navigationBars.asPaddingValues()
                                         .calculateBottomPadding(),
                                 ),
-                            selectedIndex = mainPagerState.selectedPage,
+                            selectedIndex = mainPagerState.selectedPage.coerceIn(0, (tabs.size - 1).coerceAtLeast(0)),
                             onSelected = { index -> onTabClick(index, tabs[index]) },
                             backdrop = glassBackdrop,
                             tabsCount = tabs.size,
@@ -445,6 +465,15 @@ class MainPagerState(
                 }
             }
         }
+    }
+
+    /** 分頁集合變動後直接跳到目標頁（無動畫），並重設選中狀態。 */
+    suspend fun jumpToPage(targetIndex: Int) {
+        navJob?.cancel()
+        isNavigating = false
+        val index = targetIndex.coerceIn(0, (pagerState.pageCount - 1).coerceAtLeast(0))
+        selectedPage = index
+        pagerState.scrollToPage(index)
     }
 
     /** Sync [selectedPage] to the pager after a manual swipe (when not animating a tab tap). */
