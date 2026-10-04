@@ -2,10 +2,12 @@
     <string name="app_name">应用商店</string>
 
     <!-- Navigation -->
+    <string name="nav_today">今日</string>
+    <string name="nav_games">游戏</string>
+    <string name="nav_apps">应用</string>
     <string name="nav_updates">更新</string>
     <string name="nav_search">搜索</string>
     <string name="nav_settings">设置</string>
-    <string name="nav_today">今日</string>
 
     <!-- Common -->
     <string name="back">返回</string>
@@ -66,6 +68,13 @@
 
     <!-- Search -->
     <string name="search_hint">搜索应用</string>
+    <string name="category_tools">工具</string>
+    <string name="category_media">影音</string>
+    <string name="category_social">社交</string>
+    <string name="category_office">办公</string>
+    <string name="category_education">教育</string>
+    <string name="category_shopping">购物</string>
+    <string name="category_sports">运动</string>
     <string name="search_button">搜索</string>
     <string name="no_results">未找到结果</string>
     <string name="search_failed">搜索失败</string>
@@ -88,6 +97,8 @@
     <string name="theme_navigation_badge_summary">显示可更新应用数量</string>
     <string name="theme_section_navigation">导航栏项目</string>
     <string name="theme_tab_today_summary">显示今日推荐与精选内容</string>
+    <string name="theme_tab_games_summary">浏览游戏与排行榜</string>
+    <string name="theme_tab_apps_summary">浏览应用与排行榜</string>
     <string name="theme_tab_updates_summary">显示应用更新状态与记录</string>
     <string name="theme_tab_search_summary">跨数据源搜索应用</string>
     <string name="theme_section_interaction">手势与缩放</string>

@@ -3,6 +3,8 @@
 
     <!-- Navigation -->
     <string name="nav_today">Today</string>
+    <string name="nav_games">Games</string>
+    <string name="nav_apps">Apps</string>
     <string name="nav_updates">Updates</string>
     <string name="nav_search">Search</string>
     <string name="nav_settings">Settings</string>
@@ -65,6 +67,13 @@
 
     <!-- Search -->
     <string name="search_hint">Search apps</string>
+    <string name="category_tools">Tools</string>
+    <string name="category_media">Media</string>
+    <string name="category_social">Social</string>
+    <string name="category_office">Productivity</string>
+    <string name="category_education">Education</string>
+    <string name="category_shopping">Shopping</string>
+    <string name="category_sports">Sports</string>
     <string name="search_button">Search</string>
     <string name="no_results">No results</string>
     <string name="search_failed">Search failed</string>
@@ -87,6 +96,8 @@
     <string name="theme_navigation_badge_summary">Show the number of apps that can be updated</string>
     <string name="theme_section_navigation">Navigation items</string>
     <string name="theme_tab_today_summary">Show Today recommendations and articles</string>
+    <string name="theme_tab_games_summary">Browse games and rankings</string>
+    <string name="theme_tab_apps_summary">Browse apps and rankings</string>
     <string name="theme_tab_updates_summary">Show app update status and history</string>
     <string name="theme_tab_search_summary">Search applications across sources</string>
     <string name="theme_section_interaction">Interaction</string>

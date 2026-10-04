@@ -24,6 +24,8 @@ import top.app.market.platform.UiPlatform
 import top.app.market.platform.isBlurSettingSupported
 import top.app.market.platform.isPredictiveBackSupported
 import top.app.market.resources.Res
+import top.app.market.resources.nav_apps
+import top.app.market.resources.nav_games
 import top.app.market.resources.nav_search
 import top.app.market.resources.nav_today
 import top.app.market.resources.nav_updates
@@ -44,6 +46,8 @@ import top.app.market.resources.theme_section_appearance
 import top.app.market.resources.theme_section_interaction
 import top.app.market.resources.theme_section_navigation
 import top.app.market.resources.theme_tab_today_summary
+import top.app.market.resources.theme_tab_games_summary
+import top.app.market.resources.theme_tab_apps_summary
 import top.app.market.resources.theme_tab_updates_summary
 import top.app.market.resources.theme_tab_search_summary
 import top.app.market.ui.component.CardSegmentContainer
@@ -119,6 +123,8 @@ private fun ThemeSettingsContent(
     val tabOptions = remember(appManagementSupported) {
         buildList {
             add(NavigationTabOption("today", Res.string.nav_today, Res.string.theme_tab_today_summary))
+            add(NavigationTabOption("games", Res.string.nav_games, Res.string.theme_tab_games_summary))
+            add(NavigationTabOption("apps", Res.string.nav_apps, Res.string.theme_tab_apps_summary))
             if (appManagementSupported) {
                 add(NavigationTabOption("updates", Res.string.nav_updates, Res.string.theme_tab_updates_summary))
             }

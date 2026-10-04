@@ -1,4 +1,4 @@
-﻿package top.app.market.ui.navigation
+package top.app.market.ui.navigation
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.MutatePriority
@@ -50,6 +50,8 @@ import top.app.market.domain.model.preference.HomePage
 import top.app.market.domain.repository.ThemePreferencesRepository
 import top.app.market.platform.UiPlatform
 import top.app.market.resources.Res
+import top.app.market.resources.nav_apps
+import top.app.market.resources.nav_games
 import top.app.market.resources.nav_search
 import top.app.market.resources.nav_settings
 import top.app.market.resources.nav_today
@@ -58,6 +60,8 @@ import top.app.market.ui.component.FloatingBottomBar
 import top.app.market.ui.component.FloatingBottomBarItem
 import top.app.market.ui.component.blur.BlurredBar
 import top.app.market.ui.component.blur.rememberBlurBackdrop
+import top.app.market.domain.model.market.AppCategory
+import top.app.market.ui.screen.CategoryTab
 import top.app.market.ui.screen.SearchTab
 import top.app.market.ui.screen.SettingsTab
 import top.app.market.ui.screen.TodayTab
@@ -68,6 +72,7 @@ import top.app.market.ui.theme.LocalEnableNavigationBadge
 import top.app.market.ui.util.rememberIsWideScreen
 import top.app.market.viewmodel.InstallerSettingsViewModel
 import top.app.market.viewmodel.SearchViewModel
+import top.app.market.viewmodel.CategoryViewModel
 import top.app.market.viewmodel.TodayViewModel
 import top.app.market.viewmodel.UpdatesViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -91,6 +96,7 @@ import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Create
+import top.yukonga.miuix.kmp.icon.extended.Play
 import top.yukonga.miuix.kmp.icon.extended.Search
 import top.yukonga.miuix.kmp.icon.extended.Settings
 import top.yukonga.miuix.kmp.icon.extended.Update
@@ -98,7 +104,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlin.math.abs
 
 // 主页签集合按平台能力裁剪：桌面端（无法扫描已装应用 / 安装）不含「更新」。
-private enum class MainTab { Today, Updates, Search, Settings }
+private enum class MainTab { Today, Games, Apps, Updates, Search, Settings }
 
 @Composable
 fun MainPage(
@@ -107,6 +113,7 @@ fun MainPage(
     searchViewModel: SearchViewModel,
     installerSettingsViewModel: InstallerSettingsViewModel,
     todayViewModel: TodayViewModel,
+    categoryViewModel: CategoryViewModel,
     pendingSearchKeyword: String? = null,
     onPendingSearchConsumed: () -> Unit = {},
 ) {
@@ -121,6 +128,8 @@ fun MainPage(
     val tabs = remember(appManagementSupported, enabledTabs) {
         buildList {
             if ("today" in enabledTabs) add(MainTab.Today)
+            if ("games" in enabledTabs) add(MainTab.Games)
+            if ("apps" in enabledTabs) add(MainTab.Apps)
             if (appManagementSupported && "updates" in enabledTabs) add(MainTab.Updates)
             if ("search" in enabledTabs) add(MainTab.Search)
             add(MainTab.Settings)
@@ -224,6 +233,22 @@ fun MainPage(
                     onClickArticle = { article ->
                         navigator.push(Route.TodayArticle(article.rId))
                     },
+                )
+
+                MainTab.Games -> CategoryTab(
+                    category = AppCategory.GAMES,
+                    viewModel = categoryViewModel,
+                    bottomPadding = bottomPadding,
+                    onOpenDetail = openDetail,
+                    isCurrentPage = selectedPage == tabs.indexOf(MainTab.Games),
+                )
+
+                MainTab.Apps -> CategoryTab(
+                    category = AppCategory.APPS,
+                    viewModel = categoryViewModel,
+                    bottomPadding = bottomPadding,
+                    onOpenDetail = openDetail,
+                    isCurrentPage = selectedPage == tabs.indexOf(MainTab.Apps),
                 )
 
                 MainTab.Updates -> UpdatesTab(
@@ -346,7 +371,7 @@ fun MainPage(
                             tabs.forEachIndexed { index, tab ->
                                 val label = stringResource(tab.labelRes)
                                 FloatingBottomBarItem(
-                                    modifier = Modifier.defaultMinSize(minWidth = 76.dp),
+                                    modifier = Modifier.defaultMinSize(minWidth = if (tabs.size > 4) 56.dp else 76.dp),
                                     selected = mainPagerState.selectedPage == index,
                                     onClick = { onTabClick(index, tab) },
                                 ) {
@@ -410,6 +435,8 @@ private fun HomePage.toTab(): MainTab = when (this) {
 private val MainTab.icon
     get() = when (this) {
         MainTab.Today -> MiuixIcons.Create
+        MainTab.Games -> MiuixIcons.Play
+        MainTab.Apps -> MiuixIcons.Create
         MainTab.Updates -> MiuixIcons.Update
         MainTab.Search -> MiuixIcons.Search
         MainTab.Settings -> MiuixIcons.Settings
@@ -418,6 +445,8 @@ private val MainTab.icon
 private val MainTab.labelRes
     get() = when (this) {
         MainTab.Today -> Res.string.nav_today
+        MainTab.Games -> Res.string.nav_games
+        MainTab.Apps -> Res.string.nav_apps
         MainTab.Updates -> Res.string.nav_updates
         MainTab.Search -> Res.string.nav_search
         MainTab.Settings -> Res.string.nav_settings

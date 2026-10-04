@@ -1,6 +1,7 @@
 ﻿package top.app.market.di
 
 import top.app.market.viewmodel.AppDetailViewModel
+import top.app.market.viewmodel.CategoryViewModel
 import top.app.market.viewmodel.DeviceProfileViewModel
 import top.app.market.viewmodel.DownloadingAppsViewModel
 import top.app.market.viewmodel.HistoricalVersionsViewModel
@@ -30,4 +31,5 @@ val viewModelModule = module {
     viewModelOf(::DeviceProfileViewModel)
     viewModelOf(::AppDetailViewModel)
     viewModelOf(::TodayViewModel)
+    viewModelOf(::CategoryViewModel)
 }
