@@ -1,4 +1,4 @@
-﻿package top.app.market.data.store
+package top.app.market.data.store
 
 import top.app.market.data.local.PreferencesDataSource
 import top.app.market.data.local.preferences.ThemePreferenceKeys
@@ -37,6 +37,8 @@ internal class ThemePreferencesRepositoryImpl(
     override val pageScale: StateFlow<Float> = _pageScale.asStateFlow()
     private val _enabledTabs = MutableStateFlow(DEFAULT_TABS)
     override val enabledTabs: StateFlow<Set<String>> = _enabledTabs.asStateFlow()
+    private val _appLanguage = MutableStateFlow<String?>(null)
+    override val appLanguage: StateFlow<String?> = _appLanguage.asStateFlow()
 
     init {
         val arrivals = listOf(
@@ -62,6 +64,9 @@ internal class ThemePreferencesRepositoryImpl(
             },
             observe("enabledTabs", preferences.observe(ThemePreferenceKeys.EnabledTabs)) { raw ->
                 _enabledTabs.value = parseTabs(raw)
+            },
+            observe("appLanguage", preferences.observe(ThemePreferenceKeys.AppLanguage)) {
+                _appLanguage.value = it
             },
         )
         scope.launch {
@@ -111,6 +116,14 @@ internal class ThemePreferencesRepositoryImpl(
     override suspend fun setEnabledTabs(value: Set<String>) {
         val safe = if (value.isEmpty()) DEFAULT_TABS else value
         preferences.put(ThemePreferenceKeys.EnabledTabs, safe.joinToString(","))
+    }
+
+    override suspend fun setAppLanguage(value: String?) {
+        if (value.isNullOrBlank()) {
+            preferences.remove(ThemePreferenceKeys.AppLanguage)
+        } else {
+            preferences.put(ThemePreferenceKeys.AppLanguage, value)
+        }
     }
 
     private companion object {

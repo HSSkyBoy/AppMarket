@@ -1,4 +1,4 @@
-﻿package top.app.market.data.local.preferences
+package top.app.market.data.local.preferences
 
 import top.app.market.data.local.BooleanPreferenceKey
 import top.app.market.data.local.StringPreferenceKey
@@ -13,4 +13,5 @@ object ThemePreferenceKeys {
     val EnablePredictiveBack = BooleanPreferenceKey(NS, "enable_predictive_back")
     val PageScale = StringPreferenceKey(NS, "page_scale")
     val EnabledTabs = StringPreferenceKey(NS, "enabled_tabs")
+    val AppLanguage = StringPreferenceKey(NS, "app_language")
 }

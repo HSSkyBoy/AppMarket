@@ -1,4 +1,4 @@
-﻿package top.app.market.domain.repository
+package top.app.market.domain.repository
 
 import kotlinx.coroutines.flow.StateFlow
 
@@ -13,6 +13,7 @@ interface ThemePreferencesRepository {
     val enablePredictiveBack: StateFlow<Boolean>
     val pageScale: StateFlow<Float>
     val enabledTabs: StateFlow<Set<String>>
+    val appLanguage: StateFlow<String?>
 
     suspend fun setEnableBlur(value: Boolean)
     suspend fun setEnableFloatingBottomBar(value: Boolean)
@@ -22,4 +23,5 @@ interface ThemePreferencesRepository {
     suspend fun setEnablePredictiveBack(value: Boolean)
     suspend fun setPageScale(value: Float)
     suspend fun setEnabledTabs(value: Set<String>)
+    suspend fun setAppLanguage(value: String?)
 }
