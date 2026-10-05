@@ -23,3 +23,18 @@ enum class GameRanking(val tapTapType: String) {
     NEW("new"),
     SELL("sell"),
 }
+
+/** Xiaomi game sub-categories (`level1CategoryId`); [ALL] is the whole game category. */
+enum class GameSubCategory(val xiaomiCategoryId: Int) {
+    ALL(XIAOMI_GAME_CATEGORY_ID),
+    STRATEGY(16),
+    ACTION(17),
+    RACING(18),
+    RPG(19),
+    CARD(20),
+    FIGHTING(21),
+    KIDS(22),
+    CASUAL(23),
+    FLIGHT(25),
+    RUNNER(26),
+}

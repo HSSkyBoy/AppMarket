@@ -78,6 +78,17 @@
     <string name="ranking_hot">热门</string>
     <string name="ranking_new">新品</string>
     <string name="ranking_sell">热卖</string>
+    <string name="game_category_all">全部</string>
+    <string name="game_category_strategy">战争策略</string>
+    <string name="game_category_action">动作枪战</string>
+    <string name="game_category_racing">赛车体育</string>
+    <string name="game_category_rpg">网游RPG</string>
+    <string name="game_category_card">棋牌桌游</string>
+    <string name="game_category_fighting">格斗快打</string>
+    <string name="game_category_kids">儿童益智</string>
+    <string name="game_category_casual">休闲创意</string>
+    <string name="game_category_flight">飞行空战</string>
+    <string name="game_category_runner">跑酷闯关</string>
     <string name="search_button">搜索</string>
     <string name="no_results">未找到结果</string>
     <string name="search_failed">搜索失败</string>

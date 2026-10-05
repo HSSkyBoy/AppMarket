@@ -8,6 +8,7 @@ import top.app.market.domain.model.market.AppCategory
 import top.app.market.domain.model.market.AppSource
 import top.app.market.domain.model.market.AppSubCategory
 import top.app.market.domain.model.market.GameRanking
+import top.app.market.domain.model.market.GameSubCategory
 import top.app.market.domain.model.market.MarketAppInfo
 import top.app.market.domain.model.market.isDownloadBlocked
 import top.app.market.domain.model.market.isReservation
@@ -37,19 +38,30 @@ data class CategoryUiState(
     val epoch: Int = 0,
 )
 
-/** 分区列表的加载键：应用按子分类、游戏按榜单各自独立翻页与缓存。 */
-data class CategoryKey(val category: AppCategory, val subCategory: AppSubCategory?, val ranking: GameRanking?)
+/** 当前选中的子分类 / 榜单；各分区只读取与自己相关的那一项。 */
+@Immutable
+data class CategorySelection(
+    val appSubCategory: AppSubCategory = AppSubCategory.TOOLS,
+    val gameRanking: GameRanking = GameRanking.HOT,
+    val gameSubCategory: GameSubCategory = GameSubCategory.ALL,
+)
 
-private fun sectionKey(category: AppCategory, subCategory: AppSubCategory, ranking: GameRanking): CategoryKey =
-    CategoryKey(category, subCategory.takeIf { category == AppCategory.APPS }, ranking.takeIf { category == AppCategory.GAMES })
+/** 分区列表的加载键：应用按子分类、游戏按榜单（TapTap）/ 细分类（小米）各自独立翻页与缓存。 */
+data class CategoryKey(
+    val category: AppCategory,
+    val subCategory: AppSubCategory?,
+    val ranking: GameRanking?,
+    val gameSubCategory: GameSubCategory?,
+)
+
+private fun sectionKey(category: AppCategory, selection: CategorySelection): CategoryKey = when (category) {
+    AppCategory.APPS -> CategoryKey(category, selection.appSubCategory, null, null)
+    AppCategory.GAMES -> CategoryKey(category, null, selection.gameRanking, selection.gameSubCategory)
+}
 
 /** 取指定分区状态，尚未加载时为空状态。 */
-fun Map<CategoryKey, CategoryUiState>.of(
-    category: AppCategory,
-    subCategory: AppSubCategory,
-    ranking: GameRanking,
-): CategoryUiState =
-    this[sectionKey(category, subCategory, ranking)] ?: CategoryUiState()
+fun Map<CategoryKey, CategoryUiState>.of(category: AppCategory, selection: CategorySelection): CategoryUiState =
+    this[sectionKey(category, selection)] ?: CategoryUiState()
 
 class CategoryViewModel(
     private val sources: MarketSourceRepository,
@@ -60,10 +72,8 @@ class CategoryViewModel(
 ) : ViewModel() {
     val categorySource: StateFlow<AppSource> = prefs.categorySource
 
-    private val _apps = MutableStateFlow(AppSubCategory.TOOLS)
-    val appSubCategory: StateFlow<AppSubCategory> = _apps.asStateFlow()
-    private val _ranking = MutableStateFlow(GameRanking.HOT)
-    val gameRanking: StateFlow<GameRanking> = _ranking.asStateFlow()
+    private val _selection = MutableStateFlow(CategorySelection())
+    val selection: StateFlow<CategorySelection> = _selection.asStateFlow()
 
     private val sections = MutableStateFlow<Map<CategoryKey, CategoryUiState>>(emptyMap())
     val sectionStates: StateFlow<Map<CategoryKey, CategoryUiState>> = sections.asStateFlow()
@@ -109,27 +119,25 @@ class CategoryViewModel(
         }
     }
 
-    fun selectGameRanking(value: GameRanking) {
-        _ranking.value = value
-    }
+    fun selectGameRanking(value: GameRanking) = _selection.update { it.copy(gameRanking = value) }
+    fun selectGameSubCategory(value: GameSubCategory) = _selection.update { it.copy(gameSubCategory = value) }
+    fun selectSubCategory(value: AppSubCategory) = _selection.update { it.copy(appSubCategory = value) }
 
-    fun selectSubCategory(value: AppSubCategory) {
-        _apps.value = value
-    }
+    private fun keyOf(category: AppCategory) = sectionKey(category, _selection.value)
 
     /** 首次进入分区时加载第一页；已有数据或正在加载则忽略。 */
-    fun ensureLoaded(category: AppCategory, subCategory: AppSubCategory, ranking: GameRanking) {
-        val key = sectionKey(category, subCategory, ranking)
+    fun ensureLoaded(category: AppCategory) {
+        val key = keyOf(category)
         val state = sections.value[key]
         if (state != null && (state.items.isNotEmpty() || state.loading)) return
         load(key, replace = true)
     }
 
-    fun retry(category: AppCategory, subCategory: AppSubCategory, ranking: GameRanking) =
-        load(sectionKey(category, subCategory, ranking), replace = true)
+    /** 失败重试与下拉刷新共用：重载第一页，成功前保留现有列表。 */
+    fun refresh(category: AppCategory) = load(keyOf(category), replace = true)
 
-    fun loadMore(category: AppCategory, subCategory: AppSubCategory, ranking: GameRanking) {
-        val key = sectionKey(category, subCategory, ranking)
+    fun loadMore(category: AppCategory) {
+        val key = keyOf(category)
         val state = sections.value[key] ?: return
         if (state.loading || state.loadingMore || !state.hasMore || state.items.isEmpty()) return
         load(key, replace = false)
@@ -149,6 +157,7 @@ class CategoryViewModel(
                     category = key.category,
                     subCategory = key.subCategory ?: AppSubCategory.TOOLS,
                     ranking = key.ranking ?: GameRanking.HOT,
+                    gameSubCategory = key.gameSubCategory ?: GameSubCategory.ALL,
                     page = page,
                 )
             }

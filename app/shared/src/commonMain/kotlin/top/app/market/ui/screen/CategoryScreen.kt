@@ -27,8 +27,20 @@ import top.app.market.domain.model.market.AppCategory
 import top.app.market.domain.model.market.AppSource
 import top.app.market.domain.model.market.AppSubCategory
 import top.app.market.domain.model.market.GameRanking
+import top.app.market.domain.model.market.GameSubCategory
 import top.app.market.domain.model.market.MarketAppInfo
 import top.app.market.resources.Res
+import top.app.market.resources.game_category_all
+import top.app.market.resources.game_category_strategy
+import top.app.market.resources.game_category_action
+import top.app.market.resources.game_category_racing
+import top.app.market.resources.game_category_rpg
+import top.app.market.resources.game_category_card
+import top.app.market.resources.game_category_fighting
+import top.app.market.resources.game_category_kids
+import top.app.market.resources.game_category_casual
+import top.app.market.resources.game_category_flight
+import top.app.market.resources.game_category_runner
 import top.app.market.resources.category_education
 import top.app.market.resources.category_media
 import top.app.market.resources.category_office
@@ -57,7 +69,9 @@ import top.app.market.viewmodel.of
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -72,27 +86,27 @@ fun CategoryTab(
     isCurrentPage: Boolean = true,
 ) {
     val sections by viewModel.sectionStates.collectAsStateWithLifecycle()
-    val subCategory by viewModel.appSubCategory.collectAsStateWithLifecycle()
-    val ranking by viewModel.gameRanking.collectAsStateWithLifecycle()
+    val selection by viewModel.selection.collectAsStateWithLifecycle()
     val categorySource by viewModel.categorySource.collectAsStateWithLifecycle()
     val downloadStates = viewModel.downloadStates.collectAsStateWithLifecycle()
-    val state = sections.of(category, subCategory, ranking)
+    val state = sections.of(category, selection)
     val listState = rememberLazyListState()
+    val pullToRefreshState = rememberPullToRefreshState()
 
-    // 切到本页（或切换子分类）时才发起首屏请求，避免未访问的页签空耗网络
-    LaunchedEffect(category, subCategory, ranking, isCurrentPage) {
-        if (isCurrentPage) viewModel.ensureLoaded(category, subCategory, ranking)
+    // 切到本页（或切换子分类 / 榜单）时才发起首屏请求，避免未访问的页签空耗网络
+    LaunchedEffect(category, selection, isCurrentPage) {
+        if (isCurrentPage) viewModel.ensureLoaded(category)
     }
-    LaunchedEffect(listState, category, subCategory, ranking) {
+    LaunchedEffect(listState, category, selection) {
         snapshotFlow {
             val info = listState.layoutInfo
             val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: -1
             lastVisible >= 0 && info.totalItemsCount > 0 && lastVisible >= info.totalItemsCount - 3
         }
             .distinctUntilChanged()
-            .collect { atBottom -> if (atBottom) viewModel.loadMore(category, subCategory, ranking) }
+            .collect { atBottom -> if (atBottom) viewModel.loadMore(category) }
     }
-    LaunchedEffect(state.epoch, subCategory, ranking) {
+    LaunchedEffect(state.epoch, selection) {
         if (state.epoch > 0) listState.scrollToItem(0)
     }
 
@@ -119,88 +133,105 @@ fun CategoryTab(
             if (fullScreenLoading) {
                 LoadingBox(Modifier.fillMaxSize().padding(contentPadding))
             } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .scrollEndHaptic()
-                        .overScrollVertical()
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = contentPadding,
+                PullToRefresh(
+                    isRefreshing = state.loading && state.items.isNotEmpty(),
+                    onRefresh = { viewModel.refresh(category) },
+                    pullToRefreshState = pullToRefreshState,
+                    contentPadding = PaddingValues(top = topPadding),
                 ) {
-                    // 子分类取自小米分类体系；华为只有单一应用榜
-                    if (category == AppCategory.APPS && categorySource != AppSource.HUAWEI) {
-                        item(key = "sub-categories") {
-                            SelectionChips(
-                                items = AppSubCategory.entries,
-                                selected = subCategory,
-                                labelRes = { it.labelRes },
-                                onSelect = viewModel::selectSubCategory,
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .scrollEndHaptic()
+                            .overScrollVertical()
+                            .nestedScroll(scrollBehavior.nestedScrollConnection),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = contentPadding,
+                    ) {
+                        // 子分类取自小米分类体系；华为只有单一应用榜
+                        if (category == AppCategory.APPS && categorySource != AppSource.HUAWEI) {
+                            item(key = "sub-categories") {
+                                SelectionChips(
+                                    items = AppSubCategory.entries,
+                                    selected = selection.appSubCategory,
+                                    labelRes = { it.labelRes },
+                                    onSelect = viewModel::selectSubCategory,
+                                )
+                            }
+                        }
+                        // 游戏：TapTap 提供榜单，小米提供细分类，华为只有单一游戏榜
+                        if (category == AppCategory.GAMES && categorySource == AppSource.TAPTAP) {
+                            item(key = "rankings") {
+                                SelectionChips(
+                                    items = GameRanking.entries,
+                                    selected = selection.gameRanking,
+                                    labelRes = { it.labelRes },
+                                    onSelect = viewModel::selectGameRanking,
+                                )
+                            }
+                        }
+                        if (category == AppCategory.GAMES && categorySource == AppSource.XIAOMI) {
+                            item(key = "game-sub-categories") {
+                                SelectionChips(
+                                    items = GameSubCategory.entries,
+                                    selected = selection.gameSubCategory,
+                                    labelRes = { it.labelRes },
+                                    onSelect = viewModel::selectGameSubCategory,
+                                )
+                            }
+                        }
+                        if (state.errorMessage.isNotEmpty()) {
+                            item(key = "error") {
+                                Text(
+                                    text = state.errorMessage,
+                                    color = MiuixTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.padding(horizontal = 4.dp),
+                                )
+                                Text(
+                                    text = retryText,
+                                    color = MiuixTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .padding(horizontal = 4.dp, vertical = 8.dp)
+                                        .clickable { viewModel.refresh(category) },
+                                )
+                            }
+                        } else if (!state.loading && state.items.isEmpty()) {
+                            item(key = "empty") {
+                                Text(
+                                    text = noResults,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                    modifier = Modifier.padding(horizontal = 4.dp),
+                                )
+                            }
+                        }
+                        items(state.items, key = { it.app.packageName }) { item ->
+                            val app = item.app
+                            val packageName = app.packageName
+                            val downloadState by remember(packageName) {
+                                derivedStateOf { downloadStates.value[packageName] }
+                            }
+                            AppRow(
+                                app = app,
+                                modifier = Modifier,
+                                actionText = when (item.actionKind) {
+                                    AppActionKind.INSTALL -> installText
+                                    AppActionKind.UPDATE -> updateText
+                                    AppActionKind.OPEN -> openText
+                                    AppActionKind.RESERVE -> reserveText
+                                },
+                                actionKind = item.actionKind,
+                                downloadState = downloadState,
+                                onOpenDetail = { onOpenDetail(app) },
+                                onAction = { viewModel.onAction(item) },
+                                onResumeDownload = { viewModel.download(app, item.actionKind == AppActionKind.UPDATE) },
+                                onInstallDownloaded = viewModel::installDownloaded,
+                                onCancel = viewModel::cancelDownload,
                             )
                         }
-                    }
-                    // 仅 TapTap 提供游戏榜单；小米游戏为单一分类
-                    if (category == AppCategory.GAMES && categorySource == AppSource.TAPTAP) {
-                        item(key = "rankings") {
-                            SelectionChips(
-                                items = GameRanking.entries,
-                                selected = ranking,
-                                labelRes = { it.labelRes },
-                                onSelect = viewModel::selectGameRanking,
-                            )
+                        if (state.loadingMore) {
+                            item(key = "loadmore") { LoadingBox() }
                         }
-                    }
-                    if (state.errorMessage.isNotEmpty()) {
-                        item(key = "error") {
-                            Text(
-                                text = state.errorMessage,
-                                color = MiuixTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.padding(horizontal = 4.dp),
-                            )
-                            Text(
-                                text = retryText,
-                                color = MiuixTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .padding(horizontal = 4.dp, vertical = 8.dp)
-                                    .clickable { viewModel.retry(category, subCategory, ranking) },
-                            )
-                        }
-                    } else if (!state.loading && state.items.isEmpty()) {
-                        item(key = "empty") {
-                            Text(
-                                text = noResults,
-                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                                modifier = Modifier.padding(horizontal = 4.dp),
-                            )
-                        }
-                    }
-                    items(state.items, key = { it.app.packageName }) { item ->
-                        val app = item.app
-                        val packageName = app.packageName
-                        val downloadState by remember(packageName) {
-                            derivedStateOf { downloadStates.value[packageName] }
-                        }
-                        AppRow(
-                            app = app,
-                            modifier = Modifier,
-                            actionText = when (item.actionKind) {
-                                AppActionKind.INSTALL -> installText
-                                AppActionKind.UPDATE -> updateText
-                                AppActionKind.OPEN -> openText
-                                AppActionKind.RESERVE -> reserveText
-                            },
-                            actionKind = item.actionKind,
-                            downloadState = downloadState,
-                            onOpenDetail = { onOpenDetail(app) },
-                            onAction = { viewModel.onAction(item) },
-                            onResumeDownload = { viewModel.download(app, item.actionKind == AppActionKind.UPDATE) },
-                            onInstallDownloaded = viewModel::installDownloaded,
-                            onCancel = viewModel::cancelDownload,
-                        )
-                    }
-                    if (state.loadingMore) {
-                        item(key = "loadmore") { LoadingBox() }
                     }
                 }
             }
@@ -254,4 +285,19 @@ private val AppSubCategory.labelRes: StringResource
         AppSubCategory.EDUCATION -> Res.string.category_education
         AppSubCategory.SHOPPING -> Res.string.category_shopping
         AppSubCategory.SPORTS -> Res.string.category_sports
+    }
+
+private val GameSubCategory.labelRes: StringResource
+    get() = when (this) {
+        GameSubCategory.ALL -> Res.string.game_category_all
+        GameSubCategory.STRATEGY -> Res.string.game_category_strategy
+        GameSubCategory.ACTION -> Res.string.game_category_action
+        GameSubCategory.RACING -> Res.string.game_category_racing
+        GameSubCategory.RPG -> Res.string.game_category_rpg
+        GameSubCategory.CARD -> Res.string.game_category_card
+        GameSubCategory.FIGHTING -> Res.string.game_category_fighting
+        GameSubCategory.KIDS -> Res.string.game_category_kids
+        GameSubCategory.CASUAL -> Res.string.game_category_casual
+        GameSubCategory.FLIGHT -> Res.string.game_category_flight
+        GameSubCategory.RUNNER -> Res.string.game_category_runner
     }

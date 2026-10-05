@@ -77,6 +77,17 @@
     <string name="ranking_hot">Hot</string>
     <string name="ranking_new">New</string>
     <string name="ranking_sell">Best sellers</string>
+    <string name="game_category_all">All</string>
+    <string name="game_category_strategy">Strategy</string>
+    <string name="game_category_action">Action</string>
+    <string name="game_category_racing">Racing &amp; Sports</string>
+    <string name="game_category_rpg">Online RPG</string>
+    <string name="game_category_card">Cards &amp; Board</string>
+    <string name="game_category_fighting">Fighting</string>
+    <string name="game_category_kids">Kids &amp; Puzzle</string>
+    <string name="game_category_casual">Casual</string>
+    <string name="game_category_flight">Flight</string>
+    <string name="game_category_runner">Runner</string>
     <string name="search_button">Search</string>
     <string name="no_results">No results</string>
     <string name="search_failed">Search failed</string>
