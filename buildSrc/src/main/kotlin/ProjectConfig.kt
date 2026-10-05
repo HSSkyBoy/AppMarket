@@ -2,7 +2,7 @@ object ProjectConfig {
     const val APP_NAME = "AppMarket"
     const val PACKAGE_NAME = "top.app.market"
     const val APPLICATION_ID = "top.nkbe.appmarket"
-    const val VERSION_CODE = 233
+    const val VERSION_CODE = 238
     const val JVM_VERSION = 21
 
     object Android {

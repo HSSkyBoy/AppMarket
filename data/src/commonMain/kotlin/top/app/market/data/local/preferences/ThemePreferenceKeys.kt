@@ -13,5 +13,7 @@ object ThemePreferenceKeys {
     val EnablePredictiveBack = BooleanPreferenceKey(NS, "enable_predictive_back")
     val PageScale = StringPreferenceKey(NS, "page_scale")
     val EnabledTabs = StringPreferenceKey(NS, "enabled_tabs")
+    /** 旧版本保存的导航项目只含今日 / 更新 / 搜索；升级后一次性补上游戏、应用页签。 */
+    val CategoryTabsMigrated = BooleanPreferenceKey(NS, "category_tabs_migrated")
     val AppLanguage = StringPreferenceKey(NS, "app_language")
 }
