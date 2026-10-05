@@ -17,5 +17,4 @@ fun Project.resolveVersionName(): String {
     return if (commit.isNullOrEmpty()) baseVersionName() else "${baseVersionName()}-$commit"
 }
 
-/** 桌面安装包要求严格的 `x.y.z`，不带提交后缀。 */
 fun Project.resolvePackageVersion(): String = baseVersionName()

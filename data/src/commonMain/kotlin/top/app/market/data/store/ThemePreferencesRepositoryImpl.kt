@@ -35,8 +35,6 @@ internal class ThemePreferencesRepositoryImpl(
     override val enablePredictiveBack: StateFlow<Boolean> = _enablePredictiveBack.asStateFlow()
     private val _pageScale = MutableStateFlow(1f)
     override val pageScale: StateFlow<Float> = _pageScale.asStateFlow()
-    private var savedTabs: String? = null
-    private var categoryTabsMigrated = false
     private val _enabledTabs = MutableStateFlow(DEFAULT_TABS)
     override val enabledTabs: StateFlow<Set<String>> = _enabledTabs.asStateFlow()
     private val _appLanguage = MutableStateFlow<String?>(null)
@@ -65,11 +63,7 @@ internal class ThemePreferencesRepositoryImpl(
                 _pageScale.value = it?.toFloatOrNull()?.coerceIn(0.8f, 1.1f) ?: 1f
             },
             observe("enabledTabs", preferences.observe(ThemePreferenceKeys.EnabledTabs)) { raw ->
-                savedTabs = raw
                 _enabledTabs.value = parseTabs(raw)
-            },
-            observe("categoryTabsMigrated", preferences.observe(ThemePreferenceKeys.CategoryTabsMigrated)) {
-                categoryTabsMigrated = it
             },
             observe("appLanguage", preferences.observe(ThemePreferenceKeys.AppLanguage)) {
                 _appLanguage.value = it
@@ -77,25 +71,7 @@ internal class ThemePreferencesRepositoryImpl(
         )
         scope.launch {
             arrivals.forEach { it.await() }
-            migrateCategoryTabs()
             _initialized.value = true
-        }
-    }
-
-    // 已保存过导航项目的旧用户不会拿到新的默认值，这里一次性补上游戏 / 应用页签；之后用户可自行关闭
-    private suspend fun migrateCategoryTabs() {
-        if (categoryTabsMigrated) return
-        try {
-            if (!savedTabs.isNullOrBlank()) {
-                preferences.put(
-                    ThemePreferenceKeys.EnabledTabs,
-                    (parseTabs(savedTabs) + CATEGORY_TABS).joinToString(","),
-                )
-            }
-            preferences.put(ThemePreferenceKeys.CategoryTabsMigrated, true)
-        } catch (error: Throwable) {
-            if (error is CancellationException) throw error
-            debugLog("ThemePreferencesRepository") { "category tabs migration failed: $error" }
         }
     }
 
@@ -152,7 +128,6 @@ internal class ThemePreferencesRepositoryImpl(
 
     private companion object {
         val DEFAULT_TABS = setOf("today", "games", "apps", "updates", "search")
-        val CATEGORY_TABS = setOf("games", "apps")
 
         fun parseTabs(raw: String?): Set<String> {
             if (raw.isNullOrBlank()) return DEFAULT_TABS

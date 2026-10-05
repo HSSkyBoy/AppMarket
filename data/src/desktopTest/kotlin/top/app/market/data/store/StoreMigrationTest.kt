@@ -22,7 +22,6 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
-import top.app.market.data.local.preferences.ThemePreferenceKeys
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -55,29 +54,6 @@ class StoreMigrationTest {
             advanceUntilIdle()
             assertFalse(prefs.navRailExpanded.value)
             assertFalse(restored.navRailExpanded.value)
-        } finally {
-            scope.cancel()
-        }
-    }
-
-    @Test
-    fun legacySavedTabsGainCategoryTabsOnceAndStayUserControlled() = runTest {
-        val store = ControlledPreferencesDataSource(eagerDefaults = true)
-        store.emit(ThemePreferenceKeys.EnabledTabs, "today,updates,search")
-        val platform = RecordingThemePlatformPreferences()
-        val scope = CoroutineScope(SupervisorJob() + StandardTestDispatcher(testScheduler))
-        try {
-            val prefs = ThemePreferencesRepositoryImpl(store, scope, platform)
-            advanceUntilIdle()
-            assertTrue(prefs.initialized.value)
-            assertEquals(setOf("today", "updates", "search", "games", "apps"), prefs.enabledTabs.value)
-
-            // 用户随后关闭游戏页签：重启后不应再被补回
-            prefs.setEnabledTabs(setOf("today", "apps", "updates", "search"))
-            advanceUntilIdle()
-            val restored = ThemePreferencesRepositoryImpl(store, scope, platform)
-            advanceUntilIdle()
-            assertEquals(setOf("today", "apps", "updates", "search"), restored.enabledTabs.value)
         } finally {
             scope.cancel()
         }
