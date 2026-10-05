@@ -38,7 +38,7 @@ android {
         minSdk = ProjectConfig.Android.MIN_SDK
         targetSdk = ProjectConfig.Android.TARGET_SDK
         versionCode = resolveVersionCode()
-        versionName = ProjectConfig.VERSION_NAME
+        versionName = resolveVersionName()
 
         ndk {
             //noinspection ChromeOsAbiSupport

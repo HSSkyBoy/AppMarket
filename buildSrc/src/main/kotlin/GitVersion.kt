@@ -39,3 +39,19 @@ private fun Project.updateProjectVersionCode(versionCode: Int) {
     )
     if (updated != current) file.writeText(updated)
 }
+
+private const val VersionNameFallback = "0.0.0"
+private val SemVerPattern = Regex("""\d+\.\d+\.\d+""")
+
+/**
+ * 版本名取自最近的 `v*` tag（如 `v2.3.2` → `2.3.2`），发版只需打 tag，无需改源码。
+ * 取不到 git / tag 时返回 [VersionNameFallback]。
+ */
+fun Project.resolveVersionName(): String =
+    runCatching {
+        providers.exec {
+            commandLine("git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*")
+        }.standardOutput.asText.get().trim()
+    }.getOrNull()
+        ?.let { SemVerPattern.find(it)?.value }
+        ?: VersionNameFallback

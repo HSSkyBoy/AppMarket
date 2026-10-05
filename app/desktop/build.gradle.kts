@@ -39,7 +39,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = ProjectConfig.APP_NAME
-            packageVersion = ProjectConfig.VERSION_NAME
+            packageVersion = resolveVersionName()
         }
     }
 }
