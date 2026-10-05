@@ -257,6 +257,7 @@
     <string name="about">关于</string>
     <string name="about_summary">版本信息与项目地址</string>
     <string name="about_title">关于</string>
+    <string name="about_project">项目地址</string>
     <string name="about_open_source_licenses">开放源代码许可</string>
 
     <!-- Update history -->

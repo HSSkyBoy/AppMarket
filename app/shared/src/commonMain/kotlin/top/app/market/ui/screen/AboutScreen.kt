@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.app.market.resources.Res
 import top.app.market.resources.about_open_source_licenses
+import top.app.market.resources.about_project
 import top.app.market.resources.about_title
 import top.app.market.resources.app_name
 import top.app.market.resources.back
@@ -320,28 +321,35 @@ private fun AboutContent(
 
             item(key = "about") {
                 Column(modifier = Modifier.heightIn(min = with(density) { viewportHeight.toDp() }).padding(bottom = 12.dp)) {
+                    val cardModifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                        .then(
+                            if (backdrop != null) {
+                                Modifier.textureBlur(
+                                    backdrop = backdrop,
+                                    shape = RoundedCornerShape(16.dp),
+                                    blurRadius = 60f,
+                                    noiseCoefficient = BlurDefaults.NoiseCoefficient,
+                                    colors = BlurColors(blendColors = cardBlendColors),
+                                    enabled = true,
+                                )
+                            } else Modifier
+                        )
+                    val cardColors = CardDefaults.defaultColors(
+                        if (backdrop != null && blurEnabled) Color.Transparent else colorScheme.surfaceContainer,
+                        Color.Transparent,
+                    )
+                    SectionTitle(text = stringResource(Res.string.about_project), topPadding = 0.dp)
+                    Card(modifier = cardModifier, colors = cardColors) {
+                        ArrowPreference(
+                            title = "GitHub",
+                            summary = "github.com/HSSkyBoy/AppMarket",
+                            onClick = { onOpenUrl("https://github.com/HSSkyBoy/AppMarket") },
+                        )
+                    }
                     SectionTitle(text = stringResource(Res.string.about_open_source_licenses))
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp)
-                            .then(
-                                if (backdrop != null) {
-                                    Modifier.textureBlur(
-                                        backdrop = backdrop,
-                                        shape = RoundedCornerShape(16.dp),
-                                        blurRadius = 60f,
-                                        noiseCoefficient = BlurDefaults.NoiseCoefficient,
-                                        colors = BlurColors(blendColors = cardBlendColors),
-                                        enabled = true,
-                                    )
-                                } else Modifier
-                        ),
-                        colors = CardDefaults.defaultColors(
-                            if (backdrop != null && blurEnabled) Color.Transparent else colorScheme.surfaceContainer,
-                            Color.Transparent,
-                        ),
-                    ) {
+                    Card(modifier = cardModifier, colors = cardColors) {
                         ArrowPreference(
                             title = "AndroidX Activity",
                             summary = "developer.android.com/jetpack/androidx/releases/activity",
