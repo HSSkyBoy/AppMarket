@@ -7,6 +7,7 @@ import top.app.market.domain.model.download.DownloadState
 import top.app.market.domain.model.market.AppCategory
 import top.app.market.domain.model.market.AppSource
 import top.app.market.domain.model.market.AppSubCategory
+import top.app.market.domain.model.market.CategoryOption
 import top.app.market.domain.model.market.GameRanking
 import top.app.market.domain.model.market.GameSubCategory
 import top.app.market.domain.model.market.MarketAppInfo
@@ -38,25 +39,30 @@ data class CategoryUiState(
     val epoch: Int = 0,
 )
 
-/** 当前选中的子分类 / 榜单；各分区只读取与自己相关的那一项。 */
+/** 当前选中的子分类 / 榜单 / 动态大类；各分区只读取与自己相关的那一项。 */
 @Immutable
 data class CategorySelection(
     val appSubCategory: AppSubCategory = AppSubCategory.TOOLS,
     val gameRanking: GameRanking = GameRanking.HOT,
     val gameSubCategory: GameSubCategory = GameSubCategory.ALL,
+    /** 来源动态提供的大类 id（OPPO）；选项加载完成前为 null，之后默认选第一项。 */
+    val appOption: String? = null,
+    val gameOption: String? = null,
 )
 
-/** 分区列表的加载键：应用按子分类、游戏按榜单（TapTap）/ 细分类（小米）各自独立翻页与缓存。 */
+/** 分区列表的加载键：应用按子分类、游戏按榜单（TapTap）/ 细分类（小米）/ 动态大类（OPPO）各自独立翻页与缓存。 */
 data class CategoryKey(
     val category: AppCategory,
     val subCategory: AppSubCategory?,
     val ranking: GameRanking?,
     val gameSubCategory: GameSubCategory?,
+    val option: String?,
 )
 
 private fun sectionKey(category: AppCategory, selection: CategorySelection): CategoryKey = when (category) {
-    AppCategory.APPS -> CategoryKey(category, selection.appSubCategory, null, null)
-    AppCategory.GAMES -> CategoryKey(category, null, selection.gameRanking, selection.gameSubCategory)
+    AppCategory.APPS -> CategoryKey(category, selection.appSubCategory, null, null, selection.appOption)
+    AppCategory.GAMES ->
+        CategoryKey(category, null, selection.gameRanking, selection.gameSubCategory, selection.gameOption)
 }
 
 /** 取指定分区状态，尚未加载时为空状态。 */
@@ -74,6 +80,11 @@ class CategoryViewModel(
 
     private val _selection = MutableStateFlow(CategorySelection())
     val selection: StateFlow<CategorySelection> = _selection.asStateFlow()
+
+    /** 来源动态提供的分类选项；key 缺失 = 尚未加载，空列表 = 该来源没有动态选项。 */
+    private val _options = MutableStateFlow<Map<AppCategory, List<CategoryOption>>>(emptyMap())
+    val options: StateFlow<Map<AppCategory, List<CategoryOption>>> = _options.asStateFlow()
+    private val optionJobs = mutableMapOf<AppCategory, Job>()
 
     private val sections = MutableStateFlow<Map<CategoryKey, CategoryUiState>>(emptyMap())
     val sectionStates: StateFlow<Map<CategoryKey, CategoryUiState>> = sections.asStateFlow()
@@ -95,6 +106,10 @@ class CategoryViewModel(
                 jobs.values.forEach(Job::cancel)
                 jobs.clear()
                 nextPage.clear()
+                optionJobs.values.forEach(Job::cancel)
+                optionJobs.clear()
+                _options.value = emptyMap()
+                _selection.update { it.copy(appOption = null, gameOption = null) }
                 sections.value = emptyMap()
             }
         }
@@ -122,11 +137,46 @@ class CategoryViewModel(
     fun selectGameRanking(value: GameRanking) = _selection.update { it.copy(gameRanking = value) }
     fun selectGameSubCategory(value: GameSubCategory) = _selection.update { it.copy(gameSubCategory = value) }
     fun selectSubCategory(value: AppSubCategory) = _selection.update { it.copy(appSubCategory = value) }
+    fun selectOption(category: AppCategory, id: String) = _selection.update {
+        if (category == AppCategory.APPS) it.copy(appOption = id) else it.copy(gameOption = id)
+    }
 
     private fun keyOf(category: AppCategory) = sectionKey(category, _selection.value)
 
+    /** 该来源提供动态选项（目前仅 OPPO）而本分区还没加载过选项。 */
+    private fun needsOptions(category: AppCategory) =
+        activeSource == AppSource.OPPO && _options.value[category] == null
+
+    /** 先取选项并默认选第一项；选择变化会让界面重新调用 [ensureLoaded] 继续加载列表。 */
+    private fun loadOptions(category: AppCategory) {
+        if (optionJobs[category]?.isActive == true) return
+        val source = activeSource
+        val gen = generation
+        val failedKey = keyOf(category)
+        update(failedKey) { it.copy(errorMessage = "") }
+        optionJobs[category] = viewModelScope.launch {
+            val result = runCatchingCancellable { sources.categoryOptions(source, category) }
+            if (gen != generation) return@launch
+            val list = result.getOrNull()
+            if (list == null) {
+                update(failedKey) { it.copy(errorMessage = result.exceptionOrNull()?.message ?: "Load failed") }
+                return@launch
+            }
+            _options.update { it + (category to list) }
+            val first = list.firstOrNull()?.id ?: return@launch
+            _selection.update { s ->
+                if (category == AppCategory.APPS) s.copy(appOption = s.appOption ?: first)
+                else s.copy(gameOption = s.gameOption ?: first)
+            }
+        }
+    }
+
     /** 首次进入分区时加载第一页；已有数据或正在加载则忽略。 */
     fun ensureLoaded(category: AppCategory) {
+        if (needsOptions(category)) {
+            loadOptions(category)
+            return
+        }
         val key = keyOf(category)
         val state = sections.value[key]
         if (state != null && (state.items.isNotEmpty() || state.loading)) return
@@ -134,7 +184,9 @@ class CategoryViewModel(
     }
 
     /** 失败重试与下拉刷新共用：重载第一页，成功前保留现有列表。 */
-    fun refresh(category: AppCategory) = load(keyOf(category), replace = true)
+    fun refresh(category: AppCategory) {
+        if (needsOptions(category)) loadOptions(category) else load(keyOf(category), replace = true)
+    }
 
     fun loadMore(category: AppCategory) {
         val key = keyOf(category)
@@ -158,6 +210,7 @@ class CategoryViewModel(
                     subCategory = key.subCategory ?: AppSubCategory.TOOLS,
                     ranking = key.ranking ?: GameRanking.HOT,
                     gameSubCategory = key.gameSubCategory ?: GameSubCategory.ALL,
+                    optionId = key.option,
                     page = page,
                 )
             }

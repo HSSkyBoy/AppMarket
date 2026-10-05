@@ -86,11 +86,15 @@ fun CategoryTab(
 ) {
     val sections by viewModel.sectionStates.collectAsStateWithLifecycle()
     val selection by viewModel.selection.collectAsStateWithLifecycle()
+    val options by viewModel.options.collectAsStateWithLifecycle()
     val categorySource by viewModel.categorySource.collectAsStateWithLifecycle()
     val downloadStates = viewModel.downloadStates.collectAsStateWithLifecycle()
     val state = sections.of(category, selection)
     val listState = rememberLazyListState()
     val pullToRefreshState = rememberPullToRefreshState()
+    val dynamicOptions = categorySource == AppSource.OPPO
+    val waitingForOptions = dynamicOptions && options[category] == null
+    val optionList = options[category].orEmpty()
 
     // 切到本页（或切换子分类 / 榜单）时才发起首屏请求，避免未访问的页签空耗网络
     LaunchedEffect(category, selection, isCurrentPage) {
@@ -125,7 +129,7 @@ fun CategoryTab(
             bottom = bottomPadding + PageVerticalPadding,
         )
         Crossfade(
-            targetState = state.loading && state.items.isEmpty(),
+            targetState = (state.loading && state.items.isEmpty()) || (waitingForOptions && state.errorMessage.isEmpty()),
             modifier = Modifier.fillMaxSize().then(backdropModifier),
             label = "category",
         ) { fullScreenLoading ->
@@ -149,23 +153,34 @@ fun CategoryTab(
                         contentPadding = contentPadding,
                     ) {
                         // 子分类取自小米分类体系；华为只有单一应用榜
-                        if (category == AppCategory.APPS && categorySource != AppSource.HUAWEI) {
+                        if (category == AppCategory.APPS && !dynamicOptions && categorySource != AppSource.HUAWEI) {
                             item(key = "sub-categories") {
                                 SelectionChips(
                                     items = AppSubCategory.entries,
                                     selected = selection.appSubCategory,
-                                    labelRes = { it.labelRes },
+                                    label = { stringResource(it.labelRes) },
                                     onSelect = viewModel::selectSubCategory,
                                 )
                             }
                         }
                         // 游戏：TapTap 提供榜单，小米提供细分类，华为只有单一游戏榜
+                    if (dynamicOptions && optionList.isNotEmpty()) {
+                        item(key = "options") {
+                            val selectedId = if (category == AppCategory.APPS) selection.appOption else selection.gameOption
+                            SelectionChips(
+                                items = optionList,
+                                selected = optionList.firstOrNull { it.id == selectedId } ?: optionList.first(),
+                                label = { it.name },
+                                onSelect = { viewModel.selectOption(category, it.id) },
+                            )
+                        }
+                    }
                         if (category == AppCategory.GAMES && categorySource == AppSource.TAPTAP) {
                             item(key = "rankings") {
                                 SelectionChips(
                                     items = GameRanking.entries,
                                     selected = selection.gameRanking,
-                                    labelRes = { it.labelRes },
+                                    label = { stringResource(it.labelRes) },
                                     onSelect = viewModel::selectGameRanking,
                                 )
                             }
@@ -175,7 +190,7 @@ fun CategoryTab(
                                 SelectionChips(
                                     items = GameSubCategory.entries,
                                     selected = selection.gameSubCategory,
-                                    labelRes = { it.labelRes },
+                                    label = { stringResource(it.labelRes) },
                                     onSelect = viewModel::selectGameSubCategory,
                                 )
                             }
@@ -244,7 +259,7 @@ fun CategoryTab(
 private fun <T> SelectionChips(
     items: List<T>,
     selected: T,
-    labelRes: (T) -> StringResource,
+    label: @Composable (T) -> String,
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -256,7 +271,7 @@ private fun <T> SelectionChips(
         items.forEach { item ->
             val isSelected = item == selected
             Text(
-                text = stringResource(labelRes(item)),
+                text = label(item),
                 style = MiuixTheme.textStyles.body1,
                 color = if (isSelected) MiuixTheme.colorScheme.onPrimary else MiuixTheme.colorScheme.onSurface,
                 modifier = Modifier
