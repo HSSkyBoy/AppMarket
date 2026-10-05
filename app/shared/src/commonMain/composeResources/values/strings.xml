@@ -74,6 +74,9 @@
     <string name="category_education">Education</string>
     <string name="category_shopping">Shopping</string>
     <string name="category_sports">Sports</string>
+    <string name="ranking_hot">Hot</string>
+    <string name="ranking_new">New</string>
+    <string name="ranking_sell">Best sellers</string>
     <string name="search_button">Search</string>
     <string name="no_results">No results</string>
     <string name="search_failed">Search failed</string>

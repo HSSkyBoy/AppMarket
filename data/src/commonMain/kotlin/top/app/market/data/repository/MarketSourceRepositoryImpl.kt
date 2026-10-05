@@ -4,6 +4,7 @@ import top.app.market.domain.model.download.DownloadMeta
 import top.app.market.domain.model.market.AppCategory
 import top.app.market.domain.model.market.AppComments
 import top.app.market.domain.model.market.AppSubCategory
+import top.app.market.domain.model.market.GameRanking
 import top.app.market.domain.model.market.XIAOMI_GAME_CATEGORY_ID
 import top.app.market.domain.model.market.AppDetail
 import top.app.market.domain.model.market.AppSource
@@ -53,9 +54,10 @@ internal class MarketSourceRepositoryImpl(
         source: AppSource,
         category: AppCategory,
         subCategory: AppSubCategory,
+        ranking: GameRanking,
         page: Int,
     ): SearchPage = when {
-        category == AppCategory.GAMES && source == AppSource.TAPTAP -> tapTap.recommendedGames(page)
+        category == AppCategory.GAMES && source == AppSource.TAPTAP -> tapTap.rankedGames(ranking, page)
         category == AppCategory.GAMES -> market.categoryApps(XIAOMI_GAME_CATEGORY_ID, page)
         else -> market.categoryApps(subCategory.xiaomiCategoryId, page)
     }

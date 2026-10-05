@@ -75,6 +75,9 @@
     <string name="category_education">教育</string>
     <string name="category_shopping">購物</string>
     <string name="category_sports">運動</string>
+    <string name="ranking_hot">熱門</string>
+    <string name="ranking_new">新品</string>
+    <string name="ranking_sell">熱賣</string>
     <string name="search_button">搜尋</string>
     <string name="no_results">搵唔到結果</string>
     <string name="search_failed">搜尋失敗</string>

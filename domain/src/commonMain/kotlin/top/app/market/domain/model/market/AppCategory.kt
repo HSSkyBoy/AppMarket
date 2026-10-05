@@ -16,3 +16,10 @@ enum class AppSubCategory(val xiaomiCategoryId: Int) {
 
 /** Xiaomi's single top-level "game" category id. */
 const val XIAOMI_GAME_CATEGORY_ID = 15
+
+/** TapTap 游戏榜单；[tapTapType] 为官方 `app-top/v2/hits` 的 `type_name`。 */
+enum class GameRanking(val tapTapType: String) {
+    HOT("hot"),
+    NEW("new"),
+    SELL("sell"),
+}

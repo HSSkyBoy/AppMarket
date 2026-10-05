@@ -7,6 +7,7 @@ import top.app.market.domain.model.download.DownloadState
 import top.app.market.domain.model.market.AppCategory
 import top.app.market.domain.model.market.AppSource
 import top.app.market.domain.model.market.AppSubCategory
+import top.app.market.domain.model.market.GameRanking
 import top.app.market.domain.model.market.MarketAppInfo
 import top.app.market.domain.model.market.isDownloadBlocked
 import top.app.market.domain.model.market.isReservation
@@ -36,15 +37,19 @@ data class CategoryUiState(
     val epoch: Int = 0,
 )
 
-/** 分区列表的加载键：游戏无子分类，应用按子分类各自独立翻页与缓存。 */
-data class CategoryKey(val category: AppCategory, val subCategory: AppSubCategory?)
+/** 分区列表的加载键：应用按子分类、游戏按榜单各自独立翻页与缓存。 */
+data class CategoryKey(val category: AppCategory, val subCategory: AppSubCategory?, val ranking: GameRanking?)
 
-private fun sectionKey(category: AppCategory, subCategory: AppSubCategory): CategoryKey =
-    CategoryKey(category, subCategory.takeIf { category == AppCategory.APPS })
+private fun sectionKey(category: AppCategory, subCategory: AppSubCategory, ranking: GameRanking): CategoryKey =
+    CategoryKey(category, subCategory.takeIf { category == AppCategory.APPS }, ranking.takeIf { category == AppCategory.GAMES })
 
 /** 取指定分区状态，尚未加载时为空状态。 */
-fun Map<CategoryKey, CategoryUiState>.of(category: AppCategory, subCategory: AppSubCategory): CategoryUiState =
-    this[sectionKey(category, subCategory)] ?: CategoryUiState()
+fun Map<CategoryKey, CategoryUiState>.of(
+    category: AppCategory,
+    subCategory: AppSubCategory,
+    ranking: GameRanking,
+): CategoryUiState =
+    this[sectionKey(category, subCategory, ranking)] ?: CategoryUiState()
 
 class CategoryViewModel(
     private val sources: MarketSourceRepository,
@@ -53,8 +58,12 @@ class CategoryViewModel(
     private val downloads: DownloadRepository,
     private val uiPlatform: UiPlatform,
 ) : ViewModel() {
+    val categorySource: StateFlow<AppSource> = prefs.categorySource
+
     private val _apps = MutableStateFlow(AppSubCategory.TOOLS)
     val appSubCategory: StateFlow<AppSubCategory> = _apps.asStateFlow()
+    private val _ranking = MutableStateFlow(GameRanking.HOT)
+    val gameRanking: StateFlow<GameRanking> = _ranking.asStateFlow()
 
     private val sections = MutableStateFlow<Map<CategoryKey, CategoryUiState>>(emptyMap())
     val sectionStates: StateFlow<Map<CategoryKey, CategoryUiState>> = sections.asStateFlow()
@@ -100,23 +109,27 @@ class CategoryViewModel(
         }
     }
 
+    fun selectGameRanking(value: GameRanking) {
+        _ranking.value = value
+    }
+
     fun selectSubCategory(value: AppSubCategory) {
         _apps.value = value
     }
 
     /** 首次进入分区时加载第一页；已有数据或正在加载则忽略。 */
-    fun ensureLoaded(category: AppCategory, subCategory: AppSubCategory) {
-        val key = sectionKey(category, subCategory)
+    fun ensureLoaded(category: AppCategory, subCategory: AppSubCategory, ranking: GameRanking) {
+        val key = sectionKey(category, subCategory, ranking)
         val state = sections.value[key]
         if (state != null && (state.items.isNotEmpty() || state.loading)) return
         load(key, replace = true)
     }
 
-    fun retry(category: AppCategory, subCategory: AppSubCategory) =
-        load(sectionKey(category, subCategory), replace = true)
+    fun retry(category: AppCategory, subCategory: AppSubCategory, ranking: GameRanking) =
+        load(sectionKey(category, subCategory, ranking), replace = true)
 
-    fun loadMore(category: AppCategory, subCategory: AppSubCategory) {
-        val key = sectionKey(category, subCategory)
+    fun loadMore(category: AppCategory, subCategory: AppSubCategory, ranking: GameRanking) {
+        val key = sectionKey(category, subCategory, ranking)
         val state = sections.value[key] ?: return
         if (state.loading || state.loadingMore || !state.hasMore || state.items.isEmpty()) return
         load(key, replace = false)
@@ -131,7 +144,13 @@ class CategoryViewModel(
         update(key) { it.copy(loading = replace, loadingMore = !replace, errorMessage = "") }
         jobs[key] = viewModelScope.launch {
             val result = runCatchingCancellable {
-                sources.categoryApps(source, key.category, key.subCategory ?: AppSubCategory.TOOLS, page)
+                sources.categoryApps(
+                    source = source,
+                    category = key.category,
+                    subCategory = key.subCategory ?: AppSubCategory.TOOLS,
+                    ranking = key.ranking ?: GameRanking.HOT,
+                    page = page,
+                )
             }
             if (gen != generation) return@launch
             val fetched = result.getOrNull()

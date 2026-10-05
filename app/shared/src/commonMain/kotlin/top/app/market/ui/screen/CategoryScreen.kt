@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.app.market.domain.model.market.AppCategory
+import top.app.market.domain.model.market.AppSource
 import top.app.market.domain.model.market.AppSubCategory
+import top.app.market.domain.model.market.GameRanking
 import top.app.market.domain.model.market.MarketAppInfo
 import top.app.market.resources.Res
 import top.app.market.resources.category_education
@@ -39,6 +41,9 @@ import top.app.market.resources.nav_games
 import top.app.market.resources.no_results
 import top.app.market.resources.open
 import top.app.market.resources.reserve
+import top.app.market.resources.ranking_hot
+import top.app.market.resources.ranking_new
+import top.app.market.resources.ranking_sell
 import top.app.market.resources.retry
 import top.app.market.resources.update
 import top.app.market.ui.component.AppRow
@@ -68,24 +73,26 @@ fun CategoryTab(
 ) {
     val sections by viewModel.sectionStates.collectAsStateWithLifecycle()
     val subCategory by viewModel.appSubCategory.collectAsStateWithLifecycle()
+    val ranking by viewModel.gameRanking.collectAsStateWithLifecycle()
+    val categorySource by viewModel.categorySource.collectAsStateWithLifecycle()
     val downloadStates = viewModel.downloadStates.collectAsStateWithLifecycle()
-    val state = sections.of(category, subCategory)
+    val state = sections.of(category, subCategory, ranking)
     val listState = rememberLazyListState()
 
     // 切到本页（或切换子分类）时才发起首屏请求，避免未访问的页签空耗网络
-    LaunchedEffect(category, subCategory, isCurrentPage) {
-        if (isCurrentPage) viewModel.ensureLoaded(category, subCategory)
+    LaunchedEffect(category, subCategory, ranking, isCurrentPage) {
+        if (isCurrentPage) viewModel.ensureLoaded(category, subCategory, ranking)
     }
-    LaunchedEffect(listState, category, subCategory) {
+    LaunchedEffect(listState, category, subCategory, ranking) {
         snapshotFlow {
             val info = listState.layoutInfo
             val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: -1
             lastVisible >= 0 && info.totalItemsCount > 0 && lastVisible >= info.totalItemsCount - 3
         }
             .distinctUntilChanged()
-            .collect { atBottom -> if (atBottom) viewModel.loadMore(category, subCategory) }
+            .collect { atBottom -> if (atBottom) viewModel.loadMore(category, subCategory, ranking) }
     }
-    LaunchedEffect(state.epoch, subCategory) {
+    LaunchedEffect(state.epoch, subCategory, ranking) {
         if (state.epoch > 0) listState.scrollToItem(0)
     }
 
@@ -124,7 +131,23 @@ fun CategoryTab(
                 ) {
                     if (category == AppCategory.APPS) {
                         item(key = "sub-categories") {
-                            SubCategoryChips(selected = subCategory, onSelect = viewModel::selectSubCategory)
+                            SelectionChips(
+                                items = AppSubCategory.entries,
+                                selected = subCategory,
+                                labelRes = { it.labelRes },
+                                onSelect = viewModel::selectSubCategory,
+                            )
+                        }
+                    }
+                    // 仅 TapTap 提供游戏榜单；小米游戏为单一分类
+                    if (category == AppCategory.GAMES && categorySource == AppSource.TAPTAP) {
+                        item(key = "rankings") {
+                            SelectionChips(
+                                items = GameRanking.entries,
+                                selected = ranking,
+                                labelRes = { it.labelRes },
+                                onSelect = viewModel::selectGameRanking,
+                            )
                         }
                     }
                     if (state.errorMessage.isNotEmpty()) {
@@ -139,7 +162,7 @@ fun CategoryTab(
                                 color = MiuixTheme.colorScheme.primary,
                                 modifier = Modifier
                                     .padding(horizontal = 4.dp, vertical = 8.dp)
-                                    .clickable { viewModel.retry(category, subCategory) },
+                                    .clickable { viewModel.retry(category, subCategory, ranking) },
                             )
                         }
                     } else if (!state.loading && state.items.isEmpty()) {
@@ -185,19 +208,21 @@ fun CategoryTab(
 }
 
 @Composable
-private fun SubCategoryChips(
-    selected: AppSubCategory,
-    onSelect: (AppSubCategory) -> Unit,
+private fun <T> SelectionChips(
+    items: List<T>,
+    selected: T,
+    labelRes: (T) -> StringResource,
+    onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        AppSubCategory.entries.forEach { sub ->
-            val isSelected = sub == selected
+        items.forEach { item ->
+            val isSelected = item == selected
             Text(
-                text = stringResource(sub.labelRes),
+                text = stringResource(labelRes(item)),
                 style = MiuixTheme.textStyles.body1,
                 color = if (isSelected) MiuixTheme.colorScheme.onPrimary else MiuixTheme.colorScheme.onSurface,
                 modifier = Modifier
@@ -205,12 +230,19 @@ private fun SubCategoryChips(
                         color = if (isSelected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.surfaceContainer,
                         cornerRadius = 14.dp,
                     )
-                    .clickable { onSelect(sub) }
+                    .clickable { onSelect(item) }
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             )
         }
     }
 }
+
+private val GameRanking.labelRes: StringResource
+    get() = when (this) {
+        GameRanking.HOT -> Res.string.ranking_hot
+        GameRanking.NEW -> Res.string.ranking_new
+        GameRanking.SELL -> Res.string.ranking_sell
+    }
 
 private val AppSubCategory.labelRes: StringResource
     get() = when (this) {

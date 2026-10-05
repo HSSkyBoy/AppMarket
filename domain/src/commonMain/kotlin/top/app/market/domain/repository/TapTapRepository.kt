@@ -2,6 +2,7 @@
 
 import top.app.market.domain.model.download.DownloadMeta
 import top.app.market.domain.model.market.AppDetail
+import top.app.market.domain.model.market.GameRanking
 import top.app.market.domain.model.market.MarketAppInfo
 import top.app.market.domain.model.market.SearchPage
 import top.app.market.domain.model.today.TodayArticle
@@ -14,7 +15,7 @@ interface TapTapRepository {
     suspend fun search(keyword: String, page: Int = 0): SearchPage
     suspend fun appDetail(appId: Long, packageName: String): AppDetail
     suspend fun todayFeed(page: Int = 0, pageSize: Int = 9): TodayFeedPage
-    suspend fun recommendedGames(page: Int = 0, pageSize: Int = 15): SearchPage
+    suspend fun rankedGames(ranking: GameRanking, page: Int = 0, pageSize: Int = 20): SearchPage
     suspend fun todayArticle(rId: String): TodayArticle
     suspend fun downloadMeta(app: MarketAppInfo): DownloadMeta
     suspend fun downloadUpdateMeta(app: MarketAppInfo): DownloadMeta

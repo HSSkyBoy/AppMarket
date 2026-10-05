@@ -193,6 +193,22 @@ internal class TapTapApi(
         return parsed.items to parsed.nextPage.isNotBlank()
     }
 
+    /** 官方游戏榜单（热门 / 新品 / 热卖）；未上线条目没有包名，由解析阶段丢弃。 */
+    suspend fun ranking(type: String, page: Int, pageSize: Int): Pair<List<TapTapRecommendationRecord>, Boolean> {
+        val normalizedSize = pageSize.coerceAtLeast(1)
+        val values = linkedMapOf(
+            "X-UA" to xUa,
+            "type_name" to type,
+            "from" to (page.coerceAtLeast(0) * normalizedSize).toString(),
+            "limit" to normalizedSize.toString(),
+        )
+        val response = client.get("${config.baseUrl}/app-top/v2/hits?${urlEncodeParameters(values)}") {
+            header(HttpHeaders.UserAgent, TapTapUserAgent)
+        }
+        val parsed = parseTapTapRecommendations(response.jsonObject("游戏榜单"))
+        return parsed.items to parsed.nextPage.isNotBlank()
+    }
+
     suspend fun detail(appId: Long): TapTapDetailRecord {
         if (appId <= 0L) throw MarketException("TapTap 应用 id 无效")
         val query = urlEncodeParameters(linkedMapOf("id" to appId.toString(), "X-UA" to xUa))

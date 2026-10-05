@@ -75,6 +75,9 @@
     <string name="category_education">教育</string>
     <string name="category_shopping">购物</string>
     <string name="category_sports">运动</string>
+    <string name="ranking_hot">热门</string>
+    <string name="ranking_new">新品</string>
+    <string name="ranking_sell">热卖</string>
     <string name="search_button">搜索</string>
     <string name="no_results">未找到结果</string>
     <string name="search_failed">搜索失败</string>

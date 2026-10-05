@@ -134,6 +134,7 @@ private class RecordingSearchSources : MarketSourceRepository {
         source: AppSource,
         category: top.app.market.domain.model.market.AppCategory,
         subCategory: top.app.market.domain.model.market.AppSubCategory,
+        ranking: top.app.market.domain.model.market.GameRanking,
         page: Int,
     ): SearchPage = error("Not used")
     override suspend fun appDetail(
