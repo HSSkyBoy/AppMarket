@@ -35,11 +35,21 @@ jobs:
       - name: Decode Signing Key
         run: echo ${{ secrets.SIGNING_KEY }} | base64 -d > keystore.jks
 
+      - name: Verify Tag Matches Version
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          VERSION=$(grep '^APP_VERSION_NAME=' gradle.properties | cut -d= -f2)
+          if [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match APP_VERSION_NAME=$VERSION in gradle.properties"
+            exit 1
+          fi
+
       - name: Build Release APK
         run: |
           ./gradlew :app:android:assembleRelease
           echo "APK_FILE=$(find app/android/build/outputs/apk/release -name '*.apk' | head -n 1)" >> $GITHUB_ENV
         env:
+          COMMIT_ID: ${{ startsWith(github.ref, 'refs/tags/') && '' || github.sha }}
           KEYSTORE_PATH: ${{ github.workspace }}/keystore.jks
           KEYSTORE_PASS: ${{ secrets.KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ALIAS }}
