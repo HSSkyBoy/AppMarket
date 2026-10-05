@@ -4,9 +4,20 @@ import org.gradle.api.Project
 private fun Project.baseVersionName(): String =
     providers.gradleProperty("APP_VERSION_NAME").get()
 
-/** 版本号，取自 gradle.properties 的 `APP_VERSION_CODE`；发版时与版本名一起改。 */
-fun Project.resolveVersionCode(): Int =
-    providers.gradleProperty("APP_VERSION_CODE").get().toInt()
+private const val VERSION_CODE_BASE = 220
+
+private fun Project.gitCommitCount(): Int =
+    runCatching {
+        providers.exec {
+            commandLine("git", "rev-list", "--count", "HEAD")
+        }.standardOutput.asText.get().trim().toInt()
+    }.getOrDefault(0)
+
+fun Project.resolveVersionCode(): Int {
+    val floor = providers.gradleProperty("APP_VERSION_CODE").get().toInt()
+    val fromGit = gitCommitCount().takeIf { it > 0 }?.let { VERSION_CODE_BASE + it } ?: 0
+    return maxOf(floor, fromGit)
+}
 
 /**
  * 展示用版本名：CI 非发版构建（设置了 `COMMIT_ID`）追加 `-<7 位提交>`，如 `2.3.3-e54a42c`；
