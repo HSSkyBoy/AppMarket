@@ -136,6 +136,7 @@
     <string name="today_source_summary">Used for Today page content</string>
     <string name="category_source">Games &amp; Apps source</string>
     <string name="category_source_summary">Content source for the Games and Apps pages</string>
+    <string name="update_system_app_standard_hint">System apps may be rejected by standard install. Switch to Root or Shizuku in installer settings</string>
     <string name="source_xiaomi">Xiaomi</string>
     <string name="source_vivo">vivo</string>
     <string name="source_wandoujia">Wandoujia</string>

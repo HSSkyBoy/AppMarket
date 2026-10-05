@@ -8,12 +8,16 @@ import top.app.market.domain.model.download.DownloadState
 import top.app.market.domain.model.market.AppSource
 import top.app.market.domain.model.market.MarketAppInfo
 import top.app.market.domain.model.preference.HomePage
+import top.app.market.domain.model.installer.InstallerMode
 import top.app.market.domain.model.update.IgnoredUpdate
 import top.app.market.domain.repository.DownloadRepository
+import top.app.market.domain.repository.InstallerPreferencesRepository
 import top.app.market.domain.repository.MarketSourceRepository
 import top.app.market.domain.repository.PackageRepository
 import top.app.market.domain.repository.UpdatePreferencesRepository
 import top.app.market.platform.UiPlatform
+import top.app.market.resources.Res
+import top.app.market.resources.update_system_app_standard_hint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +28,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 
 @Immutable
 data class UpdatesUiState(
@@ -49,6 +54,7 @@ class UpdatesViewModel(
     private val sources: MarketSourceRepository,
     private val prefs: UpdatePreferencesRepository,
     private val downloads: DownloadRepository,
+    private val installerPrefs: InstallerPreferencesRepository,
     private val packages: PackageRepository,
     private val uiPlatform: UiPlatform,
 ) : ViewModel() {
@@ -191,6 +197,27 @@ class UpdatesViewModel(
     }
 
     fun download(app: MarketAppInfo) {
+        hintStandardSystemUpdate(listOf(app))
+        startDownload(app)
+    }
+
+    fun downloadAll(apps: List<MarketAppInfo>) {
+        // 批量更新只提示一次，避免每个系统应用各弹一条
+        hintStandardSystemUpdate(apps)
+        apps.forEach(::startDownload)
+    }
+
+    /** 标准安装下系统应用的签名常与系统自带版本不一致，会被系统拒绝；提前提示改用 Root / Shizuku。 */
+    private fun hintStandardSystemUpdate(apps: List<MarketAppInfo>) {
+        if (apps.none { it.isSystemApp }) return
+        viewModelScope.launch {
+            if (installerPrefs.mode() == InstallerMode.STANDARD) {
+                uiPlatform.showToast(getString(Res.string.update_system_app_standard_hint))
+            }
+        }
+    }
+
+    private fun startDownload(app: MarketAppInfo) {
         if (!pendingDownloads.add(app.packageName)) return
         viewModelScope.launch {
             try {
@@ -203,10 +230,6 @@ class UpdatesViewModel(
                 pendingDownloads.remove(app.packageName)
             }
         }
-    }
-
-    fun downloadAll(apps: List<MarketAppInfo>) {
-        apps.forEach(::download)
     }
 
     fun installDownloaded(packageName: String) = downloads.install(packageName)

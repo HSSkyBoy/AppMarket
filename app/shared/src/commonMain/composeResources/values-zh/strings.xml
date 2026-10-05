@@ -137,6 +137,7 @@
     <string name="today_source_summary">用于今日页的内容</string>
     <string name="category_source">游戏与应用来源</string>
     <string name="category_source_summary">游戏、应用页的内容来源</string>
+    <string name="update_system_app_standard_hint">系统应用在标准安装下可能被系统拒绝，建议在安装器设置中改用 Root 或 Shizuku</string>
     <string name="source_xiaomi">Xiaomi</string>
     <string name="source_vivo">vivo</string>
     <string name="source_wandoujia">豌豆荚</string>
