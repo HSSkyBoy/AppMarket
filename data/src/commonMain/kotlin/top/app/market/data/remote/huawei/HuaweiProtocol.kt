@@ -61,6 +61,9 @@ internal class HuaweiProtocol(
         return response
     }
 
+    /** 首页分页树（`client.front2`），随会话缓存。 */
+    suspend fun tabs(): List<HuaweiTab> = session(profiles.load(AppSource.HUAWEI)).tabs
+
     private suspend fun session(profile: MarketProfile): HuaweiSession {
         val gateway = huaweiGateway(profile.co)
         val installId = huaweiInstallId()

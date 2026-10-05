@@ -129,7 +129,8 @@ fun CategoryTab(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = contentPadding,
                 ) {
-                    if (category == AppCategory.APPS) {
+                    // 子分类取自小米分类体系；华为只有单一应用榜
+                    if (category == AppCategory.APPS && categorySource != AppSource.HUAWEI) {
                         item(key = "sub-categories") {
                             SelectionChips(
                                 items = AppSubCategory.entries,

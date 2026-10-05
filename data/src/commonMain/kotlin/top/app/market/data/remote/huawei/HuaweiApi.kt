@@ -71,6 +71,33 @@ internal class HuaweiApi(
             .distinctBy { it.packageName.lowercase() } to hasMore
     }
 
+    /**
+     * 首页「应用榜 / 游戏榜」。分页 id 取自 `client.front2` 的分页树（按英文名匹配，服务端换 id 也不受影响），
+     * 以 `client.getTabDetail` 请求；每页 25 条，可连续翻页。
+     */
+    suspend fun ranking(games: Boolean, page: Int, pageSize: Int = RANKING_PAGE_SIZE): Pair<List<HuaweiAppRecord>, Boolean> {
+        val englishName = if (games) "GAME RANKINGS" else "APP RANKINGS"
+        val tab = protocol.tabs().findTab { it.englishName.equals(englishName, ignoreCase = true) }
+            ?: throw MarketException("华为应用市场未提供榜单")
+        val pageNumber = page.coerceAtLeast(0) + 1
+        val root = protocol.post(
+            method = "client.getTabDetail",
+            fields = mapOf(
+                "uri" to tab.id.substringBefore('?'),
+                "reqPageNum" to pageNumber.toString(),
+                "maxResults" to pageSize.toString(),
+                "isSupportPage" to "1",
+            ),
+        )
+        val records = parseHuaweiSearchRecords(root)
+            .filterNot(::isHuaweiQuickApp)
+            .distinctBy { it.packageName.lowercase() }
+        val totalPages = root.int("totalPages", root.str("totalPages").toIntOrNull() ?: pageNumber)
+        val hasMore = root.int("hasNextPage", root.str("hasNextPage").toIntOrNull() ?: 0) != 0 ||
+                pageNumber < totalPages
+        return records to hasMore
+    }
+
     suspend fun detail(packageName: String): HuaweiAppRecord {
         tryBatchDetails(listOf(packageName))
             .filter { it.packageName.equals(packageName, ignoreCase = true) }
@@ -241,6 +268,7 @@ internal class HuaweiApi(
 
     private companion object {
         const val SEARCH_PAGE_SIZE = 20
+        const val RANKING_PAGE_SIZE = 25
         const val BATCH_DETAIL_SIZE = 50
     }
 }
@@ -394,3 +422,11 @@ private fun String.looksLikeAndroidPackage(): Boolean {
 
 internal fun String.isHuaweiSha256(): Boolean =
     length == 64 && all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }
+
+private fun List<HuaweiTab>.findTab(predicate: (HuaweiTab) -> Boolean): HuaweiTab? {
+    for (tab in this) {
+        if (predicate(tab)) return tab
+        tab.children.findTab(predicate)?.let { return it }
+    }
+    return null
+}

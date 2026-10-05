@@ -54,6 +54,14 @@ internal class HuaweiRepositoryImpl(
         )
     }
 
+    override suspend fun rankedApps(games: Boolean, page: Int): SearchPage {
+        val (records, hasMore) = api.ranking(games, page)
+        return SearchPage(
+            items = records.map { record -> toApp(record).also { remember(it, record) } },
+            hasMore = hasMore,
+        )
+    }
+
     override suspend fun appDetail(appId: Long, packageName: String): AppDetail {
         val detail = api.detail(packageName)
         val cached = recordsById[appId] ?: recordsByPackage[packageName.lowercase()]

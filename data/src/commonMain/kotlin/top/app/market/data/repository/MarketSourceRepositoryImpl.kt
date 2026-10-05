@@ -58,6 +58,7 @@ internal class MarketSourceRepositoryImpl(
         page: Int,
     ): SearchPage = when {
         category == AppCategory.GAMES && source == AppSource.TAPTAP -> tapTap.rankedGames(ranking, page)
+        source == AppSource.HUAWEI -> huawei.rankedApps(games = category == AppCategory.GAMES, page = page)
         category == AppCategory.GAMES -> market.categoryApps(XIAOMI_GAME_CATEGORY_ID, page)
         else -> market.categoryApps(subCategory.xiaomiCategoryId, page)
     }

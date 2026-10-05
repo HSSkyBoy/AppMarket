@@ -135,7 +135,7 @@
     <string name="today_source">Today source</string>
     <string name="today_source_summary">Used for Today page content</string>
     <string name="category_source">Games &amp; Apps source</string>
-    <string name="category_source_summary">Used for Games and Apps pages. TapTap only provides games; Apps always use Xiaomi</string>
+    <string name="category_source_summary">Content source for the Games and Apps pages</string>
     <string name="source_xiaomi">Xiaomi</string>
     <string name="source_vivo">vivo</string>
     <string name="source_wandoujia">Wandoujia</string>

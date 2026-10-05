@@ -136,7 +136,7 @@
     <string name="today_source">今日来源</string>
     <string name="today_source_summary">用于今日页的内容</string>
     <string name="category_source">游戏与应用来源</string>
-    <string name="category_source_summary">用于游戏、应用页。TapTap 仅提供游戏，应用页始终使用小米</string>
+    <string name="category_source_summary">游戏、应用页的内容来源</string>
     <string name="source_xiaomi">Xiaomi</string>
     <string name="source_vivo">vivo</string>
     <string name="source_wandoujia">豌豆荚</string>
