@@ -103,8 +103,13 @@ private class FakeMarketSourceRepository : MarketSourceRepository {
         subCategory: top.app.market.domain.model.market.AppSubCategory,
         ranking: top.app.market.domain.model.market.GameRanking,
         gameSubCategory: top.app.market.domain.model.market.GameSubCategory,
+        optionId: String?,
         page: Int,
     ): SearchPage = error("Not used")
+    override suspend fun categoryOptions(
+        source: AppSource,
+        category: top.app.market.domain.model.market.AppCategory,
+    ): List<top.app.market.domain.model.market.CategoryOption> = emptyList()
     override suspend fun appDetail(
         source: AppSource,
         appId: Long,

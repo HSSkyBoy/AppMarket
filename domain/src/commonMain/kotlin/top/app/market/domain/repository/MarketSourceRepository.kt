@@ -4,6 +4,7 @@ import top.app.market.domain.model.download.DownloadMeta
 import top.app.market.domain.model.market.AppCategory
 import top.app.market.domain.model.market.AppComments
 import top.app.market.domain.model.market.AppSubCategory
+import top.app.market.domain.model.market.CategoryOption
 import top.app.market.domain.model.market.GameRanking
 import top.app.market.domain.model.market.GameSubCategory
 import top.app.market.domain.model.market.AppDetail
@@ -32,8 +33,11 @@ interface MarketSourceRepository {
         subCategory: AppSubCategory = AppSubCategory.TOOLS,
         ranking: GameRanking = GameRanking.HOT,
         gameSubCategory: GameSubCategory = GameSubCategory.ALL,
+        optionId: String? = null,
         page: Int = 0,
     ): SearchPage
+
+    suspend fun categoryOptions(source: AppSource, category: AppCategory): List<CategoryOption>
 
     suspend fun appDetail(
         source: AppSource,

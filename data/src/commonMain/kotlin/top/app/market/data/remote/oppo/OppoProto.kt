@@ -73,6 +73,9 @@ internal fun parseOppoProto(bytes: ByteArray): OppoProtoMessage {
     return OppoProtoMessage(fields)
 }
 
+/** OPPO「分类」页的大类。 */
+internal data class OppoCategory(val id: Long, val name: String)
+
 internal data class OppoResource(
     val appId: Long,
     val versionId: Long,

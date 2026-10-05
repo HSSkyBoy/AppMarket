@@ -2,6 +2,7 @@
 
 import top.app.market.domain.model.download.DownloadMeta
 import top.app.market.domain.model.market.AppDetail
+import top.app.market.domain.model.market.CategoryOption
 import top.app.market.domain.model.market.MarketAppInfo
 import top.app.market.domain.model.market.SearchPage
 import top.app.market.domain.model.today.TodayArticle
@@ -12,6 +13,10 @@ import top.app.market.domain.model.update.ManualUpdateResult
 /** OPPO/HeyTap store operations. Kept separate so the common source gateway can provide fallbacks. */
 interface OppoRepository {
     suspend fun search(keyword: String, page: Int = 0): SearchPage
+
+    suspend fun categories(games: Boolean): List<CategoryOption>
+
+    suspend fun categoryApps(categoryId: String, page: Int = 0): SearchPage
 
     suspend fun appDetail(appId: Long, packageName: String, externalQuery: String? = null): AppDetail
 

@@ -37,6 +37,8 @@ internal class OppoApi(
     private val client: HttpClient,
     private val profileStore: ProfileRepository,
 ) {
+    private val categoryCache = mutableMapOf<Boolean, List<OppoCategory>>()
+
     suspend fun search(keyword: String, page: Int): SearchPage {
         val profile = profileStore.load(AppSource.OPPO)
         val resources = prioritizeOppoSearchResults(
@@ -67,6 +69,60 @@ internal class OppoApi(
         )
         val response = request(HttpMethod.Post, searchUrl, byteArrayOf(0x0a, 0x00), profile)
         return parseOppoResources(response)
+    }
+
+    /**
+     * 「分类」页的大类（`/card/store/v4/cat/app|game`）。响应是 protobuf 卡片列表，
+     * 其中每个 CategoryCardDto 带名称（101）与大类 id（103）；结果在进程内缓存。
+     */
+    suspend fun categories(games: Boolean): List<OppoCategory> {
+        categoryCache[games]?.let { return it }
+        val profile = profileStore.load(AppSource.OPPO)
+        val response = request(
+            HttpMethod.Get,
+            url(
+                if (games) "/card/store/v4/cat/game" else "/card/store/v4/cat/app",
+                mapOf("start" to "0", "size" to CN_PAGE_SIZE.toString()),
+            ),
+            body = null,
+            profile = profile,
+        )
+        val root = parseOppoProto(response)
+        val categories = root.all(3).mapNotNull { field ->
+            val card = root.child(field) ?: return@mapNotNull null
+            if (card.string(127) != OPPO_CATEGORY_CARD) return@mapNotNull null
+            val id = card.long(103)
+            val name = card.string(101)
+            if (id <= 0L || name.isBlank()) null else OppoCategory(id = id, name = name)
+        }.distinctBy(OppoCategory::id)
+        if (categories.isEmpty()) throw MarketException("OPPO 未返回分类")
+        categoryCache[games] = categories
+        return categories
+    }
+
+    /** 大类下的应用（`/card/store/v3/cat/resources/alg/1`，参数 `cid`）；每页偏移 20，跨页不重复。 */
+    suspend fun categoryApps(categoryId: Long, page: Int): SearchPage {
+        val profile = profileStore.load(AppSource.OPPO)
+        val pageSize = CN_PAGE_SIZE
+        val response = request(
+            HttpMethod.Get,
+            url(
+                "/card/store/v3/cat/resources/alg/1",
+                mapOf(
+                    "cid" to categoryId.toString(),
+                    "start" to (page * pageSize).toString(),
+                    "size" to pageSize.toString(),
+                ),
+            ),
+            body = null,
+            profile = profile,
+        )
+        val resources = parseOppoResources(response)
+        return SearchPage(
+            items = resources.map(::toApp),
+            // 无可靠总数，空页即末页
+            hasMore = resources.isNotEmpty() && page < MAX_PAGE,
+        )
     }
 
     suspend fun appDetail(appId: Long, packageName: String, externalQuery: String?): AppDetail {
@@ -435,6 +491,7 @@ internal class OppoApi(
         const val CN_HOST = "https://api-cn.store.heytapmobi.com"
         const val CN_PAGE_SIZE = 20
         const val MAX_PAGE = 99
+        const val OPPO_CATEGORY_CARD = "com.heytap.cdo.card.domain.dto.CategoryCardDto"
         const val BEAUTY_PAGE_ID = "629"
         const val DETAIL_FIELDS = "1,2,3,4,5,6,7,8,9,10,12,15,16,17,18,19,20,22,26,27,30,32,56,64,102,107,112,201"
         const val HTTP_OK = 200

@@ -119,7 +119,7 @@ enum class AppSource(val token: String, val capabilities: SourceCapabilities) {
         val DefaultCategorySource: AppSource = XIAOMI
 
         /** 提供原生分区内容的来源，仅这些值有意义。 */
-        val CategorySources: List<AppSource> = listOf(XIAOMI, TAPTAP, HUAWEI)
+        val CategorySources: List<AppSource> = listOf(XIAOMI, TAPTAP, HUAWEI, OPPO)
 
         /** 更新来源默认值；须为声明了 [SourceCapabilities.supportsUpdates] 的源。 */
         val DefaultUpdateSource: AppSource = XIAOMI
