@@ -32,6 +32,8 @@ import top.app.market.resources.installer_mode_shizuku
 import top.app.market.resources.installer_mode_shizuku_summary
 import top.app.market.resources.installer_mode_third_party
 import top.app.market.resources.installer_mode_third_party_summary
+import top.app.market.resources.installer_auto_launch_confirm
+import top.app.market.resources.installer_auto_launch_confirm_summary
 import top.app.market.resources.installer_no_user_action
 import top.app.market.resources.installer_no_user_action_summary
 import top.app.market.resources.installer_none
@@ -137,6 +139,14 @@ fun InstallerSettingsScreen(
                             viewModel.setSaveToDownloads(if (deleteAfterInstall) !checked else checked)
                         },
                     )
+                    if (state.mode == InstallerMode.STANDARD) {
+                        SwitchPreference(
+                            title = stringResource(Res.string.installer_auto_launch_confirm),
+                            summary = stringResource(Res.string.installer_auto_launch_confirm_summary),
+                            checked = state.autoLaunchConfirmUi,
+                            onCheckedChange = viewModel::setAutoLaunchConfirmUi,
+                        )
+                    }
                     if (
                         state.mode == InstallerMode.STANDARD &&
                         state.userActionNotRequiredConfigurable

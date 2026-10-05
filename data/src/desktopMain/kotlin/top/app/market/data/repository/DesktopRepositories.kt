@@ -47,6 +47,8 @@ class DesktopInstallerPreferencesRepositoryImpl : InstallerPreferencesRepository
     override fun xiaomiIslandSupported(): Boolean = false
     override suspend fun xiaomiIslandOptimizationEnabled(): Boolean = false
     override suspend fun setXiaomiIslandOptimizationEnabled(enabled: Boolean) {}
+    override suspend fun autoLaunchConfirmUi(): Boolean = true
+    override suspend fun setAutoLaunchConfirmUi(enabled: Boolean) {}
 }
 
 class DesktopInstallerDiscoveryRepositoryImpl : InstallerDiscoveryRepository {

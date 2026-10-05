@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import top.app.market.domain.repository.ThemePreferencesRepository
+import top.app.market.domain.model.theme.ThemeColorMode
 import top.app.market.domain.repository.UpdatePreferencesRepository
 import top.app.market.platform.AndroidPermissionCoordinator
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,7 +52,12 @@ class MainActivity : ComponentActivity(), KoinComponent {
         permissions.registerInstalledApps(installedAppsPermissionLauncher)
         permissions.registerNotifications(postNotificationsPermissionLauncher)
         setContent {
-            val darkMode = isSystemInDarkTheme()
+            val colorMode by themePreferences.colorMode.collectAsState()
+            val darkMode = when (colorMode) {
+                ThemeColorMode.LIGHT -> false
+                ThemeColorMode.DARK -> true
+                ThemeColorMode.SYSTEM -> isSystemInDarkTheme()
+            }
             DisposableEffect(darkMode) {
                 enableEdgeToEdge(
                     statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkMode },

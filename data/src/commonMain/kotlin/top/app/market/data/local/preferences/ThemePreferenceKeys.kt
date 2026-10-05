@@ -14,4 +14,10 @@ object ThemePreferenceKeys {
     val PageScale = StringPreferenceKey(NS, "page_scale")
     val EnabledTabs = StringPreferenceKey(NS, "enabled_tabs")
     val AppLanguage = StringPreferenceKey(NS, "app_language")
+    val ColorMode = StringPreferenceKey(NS, "color_mode")
+    val ColorSource = StringPreferenceKey(NS, "color_source")
+    val SeedColor = StringPreferenceKey(NS, "seed_color")
+    val PaletteStyle = StringPreferenceKey(NS, "palette_style")
+    val ColorSpec = StringPreferenceKey(NS, "color_spec")
+    val AmoledDark = BooleanPreferenceKey(NS, "amoled_dark")
 }

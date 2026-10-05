@@ -42,6 +42,13 @@ internal class InstallerPreferencesRepositoryImpl(
         preferences.put(InstallerPreferenceKeys.SaveToDownloads, enabled)
     }
 
+    override suspend fun autoLaunchConfirmUi(): Boolean =
+        preferences.read(InstallerPreferenceKeys.AutoLaunchConfirmUi)
+
+    override suspend fun setAutoLaunchConfirmUi(enabled: Boolean) {
+        preferences.put(InstallerPreferenceKeys.AutoLaunchConfirmUi, enabled)
+    }
+
     override fun userActionNotRequiredConfigurable(): Boolean =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
                 context.applicationInfo.flags and SYSTEM_APP_FLAGS == 0

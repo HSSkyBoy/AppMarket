@@ -4,6 +4,10 @@ import top.app.market.data.local.PreferencesDataSource
 import top.app.market.data.local.preferences.ThemePreferenceKeys
 import top.app.market.data.platform.ThemePlatformPreferences
 import top.app.market.data.platform.debugLog
+import top.app.market.domain.model.theme.ThemeColorMode
+import top.app.market.domain.model.theme.ThemeColorSource
+import top.app.market.domain.model.theme.ThemeColorSpec
+import top.app.market.domain.model.theme.ThemePaletteStyle
 import top.app.market.domain.repository.ThemePreferencesRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -39,6 +43,18 @@ internal class ThemePreferencesRepositoryImpl(
     override val enabledTabs: StateFlow<Set<String>> = _enabledTabs.asStateFlow()
     private val _appLanguage = MutableStateFlow<String?>(null)
     override val appLanguage: StateFlow<String?> = _appLanguage.asStateFlow()
+    private val _colorMode = MutableStateFlow(ThemeColorMode.SYSTEM)
+    override val colorMode: StateFlow<ThemeColorMode> = _colorMode.asStateFlow()
+    private val _colorSource = MutableStateFlow(ThemeColorSource.DEFAULT)
+    override val colorSource: StateFlow<ThemeColorSource> = _colorSource.asStateFlow()
+    private val _seedColor = MutableStateFlow<Long?>(null)
+    override val seedColor: StateFlow<Long?> = _seedColor.asStateFlow()
+    private val _paletteStyle = MutableStateFlow(ThemePaletteStyle.TONAL_SPOT)
+    override val paletteStyle: StateFlow<ThemePaletteStyle> = _paletteStyle.asStateFlow()
+    private val _colorSpec = MutableStateFlow(ThemeColorSpec.SPEC_2021)
+    override val colorSpec: StateFlow<ThemeColorSpec> = _colorSpec.asStateFlow()
+    private val _amoledDark = MutableStateFlow(false)
+    override val amoledDark: StateFlow<Boolean> = _amoledDark.asStateFlow()
 
     init {
         val arrivals = listOf(
@@ -67,6 +83,24 @@ internal class ThemePreferencesRepositoryImpl(
             },
             observe("appLanguage", preferences.observe(ThemePreferenceKeys.AppLanguage)) {
                 _appLanguage.value = it
+            },
+            observe("colorMode", preferences.observe(ThemePreferenceKeys.ColorMode)) {
+                _colorMode.value = ThemeColorMode.fromKey(it)
+            },
+            observe("colorSource", preferences.observe(ThemePreferenceKeys.ColorSource)) {
+                _colorSource.value = ThemeColorSource.fromKey(it)
+            },
+            observe("seedColor", preferences.observe(ThemePreferenceKeys.SeedColor)) { raw ->
+                _seedColor.value = raw?.toLongOrNull()
+            },
+            observe("paletteStyle", preferences.observe(ThemePreferenceKeys.PaletteStyle)) {
+                _paletteStyle.value = ThemePaletteStyle.fromKey(it)
+            },
+            observe("colorSpec", preferences.observe(ThemePreferenceKeys.ColorSpec)) {
+                _colorSpec.value = ThemeColorSpec.fromKey(it)
+            },
+            observe("amoledDark", preferences.observe(ThemePreferenceKeys.AmoledDark)) {
+                _amoledDark.value = it
             },
         )
         scope.launch {
@@ -125,6 +159,29 @@ internal class ThemePreferencesRepositoryImpl(
             preferences.put(ThemePreferenceKeys.AppLanguage, value)
         }
     }
+
+    override suspend fun setColorMode(value: ThemeColorMode) =
+        preferences.put(ThemePreferenceKeys.ColorMode, value.key)
+
+    override suspend fun setColorSource(value: ThemeColorSource) =
+        preferences.put(ThemePreferenceKeys.ColorSource, value.key)
+
+    override suspend fun setSeedColor(value: Long?) {
+        if (value == null) {
+            preferences.remove(ThemePreferenceKeys.SeedColor)
+        } else {
+            preferences.put(ThemePreferenceKeys.SeedColor, value.toString())
+        }
+    }
+
+    override suspend fun setPaletteStyle(value: ThemePaletteStyle) =
+        preferences.put(ThemePreferenceKeys.PaletteStyle, value.key)
+
+    override suspend fun setColorSpec(value: ThemeColorSpec) =
+        preferences.put(ThemePreferenceKeys.ColorSpec, value.key)
+
+    override suspend fun setAmoledDark(value: Boolean) =
+        preferences.put(ThemePreferenceKeys.AmoledDark, value)
 
     private companion object {
         val DEFAULT_TABS = setOf("today", "games", "apps", "updates", "search")

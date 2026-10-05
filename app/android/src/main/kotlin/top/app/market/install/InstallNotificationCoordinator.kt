@@ -98,10 +98,10 @@ internal class InstallNotificationCoordinator(
         }
     }
 
-    /** 前台直接拉起系统确认页；后台或拉起失败时改发通知让用户点回，返回是否已拉起。 */
     suspend fun handleUserConfirmation(packageName: String, displayName: String, confirmIntent: Intent?): Boolean {
         confirmIntent?.let { confirmIntents[packageName] = it }
-        if (confirmIntent != null && appInForeground()) {
+        val autoLaunch = runCatching { preferences.autoLaunchConfirmUi() }.getOrDefault(true)
+        if (autoLaunch && confirmIntent != null && appInForeground()) {
             val launched = runCatching {
                 context.startActivity(Intent(confirmIntent).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }.isSuccess

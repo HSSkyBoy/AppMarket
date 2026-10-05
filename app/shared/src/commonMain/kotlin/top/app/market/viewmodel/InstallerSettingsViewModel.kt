@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 data class InstallerSettingsUiState(
     val mode: InstallerMode = InstallerMode.STANDARD,
     val saveToDownloads: Boolean = false,
+    val autoLaunchConfirmUi: Boolean = true,
     val userActionNotRequiredConfigurable: Boolean = false,
     val userActionNotRequiredEnabled: Boolean = false,
     val deltaUpdateSupported: Boolean = false,
@@ -75,6 +76,7 @@ class InstallerSettingsViewModel(
         _uiState.value = InstallerSettingsUiState(
             mode = mode,
             saveToDownloads = controller.saveToDownloads(),
+            autoLaunchConfirmUi = controller.autoLaunchConfirmUi(),
             userActionNotRequiredConfigurable = controller.userActionNotRequiredConfigurable(),
             userActionNotRequiredEnabled = controller.userActionNotRequiredEnabled(),
             deltaUpdateSupported = controller.deltaUpdateSupported(),
@@ -148,6 +150,11 @@ class InstallerSettingsViewModel(
     fun setSaveToDownloads(enabled: Boolean) {
         _uiState.update { it.copy(saveToDownloads = enabled) }
         viewModelScope.launch { controller.setSaveToDownloads(enabled) }
+    }
+
+    fun setAutoLaunchConfirmUi(enabled: Boolean) {
+        _uiState.update { it.copy(autoLaunchConfirmUi = enabled) }
+        viewModelScope.launch { controller.setAutoLaunchConfirmUi(enabled) }
     }
 
     fun setUserActionNotRequiredEnabled(enabled: Boolean) {
