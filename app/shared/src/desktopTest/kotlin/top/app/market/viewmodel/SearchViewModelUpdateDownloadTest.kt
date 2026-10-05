@@ -225,6 +225,7 @@ private class SearchPreferences : UpdatePreferencesRepository {
     override val homePage = MutableStateFlow(HomePage.SEARCH)
     override val searchSources = MutableStateFlow(setOf(AppSource.HONOR))
     override val todaySource = MutableStateFlow(AppSource.HONOR)
+    override val categorySource = MutableStateFlow(AppSource.XIAOMI)
     override val updateSource = MutableStateFlow(AppSource.HONOR)
     override val permanentIgnores: StateFlow<List<IgnoredUpdate>> = MutableStateFlow(emptyList())
     override val onceIgnores: StateFlow<List<IgnoredUpdate>> = MutableStateFlow(emptyList())
@@ -267,6 +268,10 @@ private class SearchPreferences : UpdatePreferencesRepository {
 
     override suspend fun setSearchSources(value: Set<AppSource>) {
         searchSources.value = value
+    }
+
+    override suspend fun setCategorySource(value: AppSource) {
+        categorySource.value = value
     }
 
     override suspend fun setTodaySource(value: AppSource) {

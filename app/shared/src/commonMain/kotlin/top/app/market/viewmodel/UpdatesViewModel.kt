@@ -63,6 +63,7 @@ class UpdatesViewModel(
     val homePage: StateFlow<HomePage> = prefs.homePage
     val searchSources: StateFlow<Set<AppSource>> = prefs.searchSources
     val todaySource: StateFlow<AppSource> = prefs.todaySource
+    val categorySource: StateFlow<AppSource> = prefs.categorySource
     val updateSource: StateFlow<AppSource> = prefs.updateSource
 
     // App-detail display toggles; consumed by the detail screen, surfaced here for the settings UI.
@@ -141,6 +142,7 @@ class UpdatesViewModel(
     fun setHomePage(value: HomePage) = persist { prefs.setHomePage(value) }
     fun setSearchSource(value: AppSource) = persist { prefs.setSearchSources(setOf(value)) }
     fun setTodaySource(value: AppSource) = persist { prefs.setTodaySource(value) }
+    fun setCategorySource(value: AppSource) = persist { prefs.setCategorySource(value) }
     fun setUpdateSource(value: AppSource) = persist { prefs.setUpdateSource(value) }
 
     fun startInitialCheck() {

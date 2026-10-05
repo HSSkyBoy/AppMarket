@@ -261,6 +261,7 @@ private class ControlledPreferencesDataSource(
         // 空串代表未配置过，回退默认源
         emit(UpdatePreferenceKeys.SearchSources, "")
         emit(UpdatePreferenceKeys.TodaySource, "")
+        emit(UpdatePreferenceKeys.CategorySource, "")
         emit(UpdatePreferenceKeys.UpdateSource, "")
         emit(UpdatePreferenceKeys.PermanentIgnores, "[]")
         emit(UpdatePreferenceKeys.OnceIgnores, "[]")

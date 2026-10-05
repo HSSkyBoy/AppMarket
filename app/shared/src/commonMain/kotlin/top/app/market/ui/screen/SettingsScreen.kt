@@ -76,6 +76,8 @@ import top.app.market.resources.strip_name_subtitle
 import top.app.market.resources.strip_name_subtitle_summary
 import top.app.market.resources.theme
 import top.app.market.resources.theme_summary
+import top.app.market.resources.category_source
+import top.app.market.resources.category_source_summary
 import top.app.market.resources.today_source
 import top.app.market.resources.today_source_summary
 import top.app.market.resources.update_history
@@ -123,6 +125,7 @@ fun SettingsTab(
     val homePage by updatesViewModel.homePage.collectAsStateWithLifecycle()
     val searchSources by updatesViewModel.searchSources.collectAsStateWithLifecycle()
     val todaySource by updatesViewModel.todaySource.collectAsStateWithLifecycle()
+    val categorySource by updatesViewModel.categorySource.collectAsStateWithLifecycle()
     val showAppComments by updatesViewModel.showAppComments.collectAsStateWithLifecycle()
     val showSameDeveloper by updatesViewModel.showSameDeveloper.collectAsStateWithLifecycle()
     val showPromotions by updatesViewModel.showPromotions.collectAsStateWithLifecycle()
@@ -157,6 +160,14 @@ fun SettingsTab(
                         items = todaySourceOptions.map { appSourceLabel(it) },
                         selectedIndex = todaySourceOptions.indexOf(todaySource).coerceAtLeast(0),
                         onSelectedIndexChange = { updatesViewModel.setTodaySource(todaySourceOptions[it]) },
+                    )
+                    val categorySourceOptions = AppSource.CategorySources
+                    WindowDropdownPreference(
+                        title = stringResource(Res.string.category_source),
+                        summary = stringResource(Res.string.category_source_summary),
+                        items = categorySourceOptions.map { appSourceLabel(it) },
+                        selectedIndex = categorySourceOptions.indexOf(categorySource).coerceAtLeast(0),
+                        onSelectedIndexChange = { updatesViewModel.setCategorySource(categorySourceOptions[it]) },
                     )
                     if (appManagementSupported) {
                         WindowDropdownPreference(

@@ -135,6 +135,7 @@ private class FakePreferences(
     override val homePage = MutableStateFlow(HomePage.TODAY)
     override val searchSources = MutableStateFlow(setOf(AppSource.XIAOMI))
     override val todaySource = MutableStateFlow(today)
+    override val categorySource = MutableStateFlow(AppSource.XIAOMI)
     override val updateSource = MutableStateFlow(AppSource.XIAOMI)
     override val permanentIgnores: StateFlow<List<IgnoredUpdate>> = MutableStateFlow(emptyList())
     override val onceIgnores: StateFlow<List<IgnoredUpdate>> = MutableStateFlow(emptyList())
@@ -177,6 +178,10 @@ private class FakePreferences(
 
     override suspend fun setSearchSources(value: Set<AppSource>) {
         searchSources.value = value
+    }
+
+    override suspend fun setCategorySource(value: AppSource) {
+        categorySource.value = value
     }
 
     override suspend fun setTodaySource(value: AppSource) {

@@ -127,7 +127,7 @@ internal class ThemePreferencesRepositoryImpl(
     }
 
     private companion object {
-        val DEFAULT_TABS = setOf("today", "updates", "search")
+        val DEFAULT_TABS = setOf("today", "games", "apps", "updates", "search")
 
         fun parseTabs(raw: String?): Set<String> {
             if (raw.isNullOrBlank()) return DEFAULT_TABS

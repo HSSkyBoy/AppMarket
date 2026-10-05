@@ -60,7 +60,7 @@ class CategoryViewModel(
     val sectionStates: StateFlow<Map<CategoryKey, CategoryUiState>> = sections.asStateFlow()
     private val nextPage = mutableMapOf<CategoryKey, Int>()
     private val jobs = mutableMapOf<CategoryKey, Job>()
-    private var activeSource = prefs.todaySource.value
+    private var activeSource = prefs.categorySource.value
     private var generation = 0L
     private val pendingDownloads = mutableSetOf<String>()
 
@@ -69,7 +69,7 @@ class CategoryViewModel(
     init {
         viewModelScope.launch {
             // 来源切换后旧列表全部作废
-            prefs.todaySource.collectLatest { source ->
+            prefs.categorySource.collectLatest { source ->
                 if (source == activeSource) return@collectLatest
                 activeSource = source
                 generation++

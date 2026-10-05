@@ -115,6 +115,12 @@ enum class AppSource(val token: String, val capabilities: SourceCapabilities) {
         /** 今日页内容来源默认值；须为声明了 [SourceCapabilities.supportsTodayFeed] 的源。 */
         val DefaultTodaySource: AppSource = XIAOMI
 
+        /** 游戏 / 应用分区的内容来源默认值；其余来源无原生分区接口，会回退小米。 */
+        val DefaultCategorySource: AppSource = XIAOMI
+
+        /** 提供原生分区内容的来源，仅这些值有意义。 */
+        val CategorySources: List<AppSource> = listOf(XIAOMI, TAPTAP)
+
         /** 更新来源默认值；须为声明了 [SourceCapabilities.supportsUpdates] 的源。 */
         val DefaultUpdateSource: AppSource = XIAOMI
 

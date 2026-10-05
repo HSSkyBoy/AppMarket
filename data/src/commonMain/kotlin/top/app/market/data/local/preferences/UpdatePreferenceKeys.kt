@@ -16,6 +16,7 @@ object UpdatePreferenceKeys {
     val HomePage = StringPreferenceKey(NS, "home_page")
     val SearchSources = StringPreferenceKey(NS, "search_sources")
     val TodaySource = StringPreferenceKey(NS, "today_source")
+    val CategorySource = StringPreferenceKey(NS, "category_source")
     val UpdateSource = StringPreferenceKey(NS, "update_source")
     val PermanentIgnores = StringPreferenceKey(NS, "permanent_ignores")
     val OnceIgnores = StringPreferenceKey(NS, "once_ignores")
