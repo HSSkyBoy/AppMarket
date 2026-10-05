@@ -7,6 +7,9 @@ import org.gradle.api.tasks.TaskAction
 
 abstract class GenerateVersionInfoTask : DefaultTask() {
     @get:Input
+    abstract val appName: Property<String>
+
+    @get:Input
     abstract val versionName: Property<String>
 
     @get:Input
@@ -24,6 +27,7 @@ abstract class GenerateVersionInfoTask : DefaultTask() {
             package misc
 
             object VersionInfo {
+                const val APP_NAME = "${appName.get()}"
                 const val VERSION_NAME = "${versionName.get()}"
                 const val VERSION_CODE = ${versionCode.get()}
             }

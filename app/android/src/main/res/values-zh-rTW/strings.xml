@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">應用程式商店</string>
+    <string name="install_channel_name">下載與安裝進度</string>
+    <string name="install_alert_channel_name">安裝結果</string>
+    <string name="install_notification_text">正在準備下載</string>
+    <string name="notif_phase_queued">等待中</string>
+    <string name="notif_phase_downloading">正在下載</string>
+    <string name="notif_phase_installing">正在安裝</string>
+    <string name="notif_phase_short_queued">等待中</string>
+    <string name="notif_phase_short_downloading">下載中</string>
+    <string name="notif_phase_short_installing">安裝中</string>
+    <string name="notif_multi_progress">%1$d/%2$d 完成</string>
+    <string name="notif_awaiting_confirm">等待安裝確認</string>
+    <string name="notif_tap_to_confirm">點按以繼續安裝</string>
+    <string name="notif_install_success">安裝完成</string>
+    <string name="notif_download_complete">下載完成</string>
+    <string name="notif_install_failed">安裝失敗</string>
+    <string name="notif_action_open">開啟</string>
+    <string name="notif_action_cancel">取消</string>
+</resources>

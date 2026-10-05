@@ -86,7 +86,7 @@ android {
     }
 
     androidResources {
-        localeFilters.addAll(listOf("en", "zh"))
+        localeFilters.addAll(listOf("en", "zh", "zh-rTW", "zh-rHK"))
     }
 
     dependenciesInfo {

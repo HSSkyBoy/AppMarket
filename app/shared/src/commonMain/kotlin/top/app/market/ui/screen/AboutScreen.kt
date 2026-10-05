@@ -51,7 +51,6 @@ import top.app.market.resources.Res
 import top.app.market.resources.about_open_source_licenses
 import top.app.market.resources.about_project
 import top.app.market.resources.about_title
-import top.app.market.resources.app_name
 import top.app.market.resources.back
 import top.app.market.resources.ic_launcher
 import top.app.market.ui.component.SectionTitle
@@ -276,7 +275,7 @@ private fun AboutContent(
                             )
                         } else Modifier
                     ),
-                text = stringResource(Res.string.app_name),
+                text = misc.VersionInfo.APP_NAME,
                 color = colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = 35.sp,

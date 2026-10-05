@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">應用商店</string>
 
     <!-- Navigation -->
     <string name="nav_today">今日</string>
