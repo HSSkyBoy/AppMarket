@@ -24,7 +24,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import top.app.market.domain.model.market.MarketLink
-import top.app.market.domain.model.market.MarketLinkParser
+import top.app.market.domain.repository.MarketLinkResolver
 import top.app.market.domain.repository.UpdatePreferencesRepository
 import top.app.market.platform.UiPlatform
 import top.app.market.resources.Res
@@ -48,15 +48,16 @@ import top.yukonga.miuix.kmp.window.WindowDialog
 internal fun ClipboardLinkPrompt(onOpen: (MarketLink) -> Unit) {
     val uiPlatform = koinInject<UiPlatform>()
     val prefs = koinInject<UpdatePreferencesRepository>()
+    val resolver = koinInject<MarketLinkResolver>()
     val detectEnabled by prefs.detectClipboardLinks.collectAsStateWithLifecycle()
     val windowFocused = LocalWindowInfo.current.isWindowFocused
     var pending by remember { mutableStateOf<MarketLink?>(null) }
 
     LaunchedEffect(windowFocused, detectEnabled) {
         if (!windowFocused || !detectEnabled) return@LaunchedEffect
-        val link = withContext(Dispatchers.Default) {
-            uiPlatform.readNewClipboardText()?.let(MarketLinkParser::parseText)
-        } ?: return@LaunchedEffect
+        val text = withContext(Dispatchers.Default) { uiPlatform.readNewClipboardText() }
+            ?: return@LaunchedEffect
+        val link = resolver.resolve(text) ?: return@LaunchedEffect
         val key = link.toUnifiedUri()
         if (key == prefs.lastClipboardLink()) return@LaunchedEffect
         prefs.setLastClipboardLink(key)

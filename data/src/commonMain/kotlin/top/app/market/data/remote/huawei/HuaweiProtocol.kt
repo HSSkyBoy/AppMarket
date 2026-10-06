@@ -18,6 +18,7 @@ import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsBytes
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.request
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Parameters
@@ -59,6 +60,29 @@ internal class HuaweiProtocol(
         }
         response.requireSuccess(method)
         return response
+    }
+
+    /**
+     * 华为应用市场网页版的应用信息接口（无需会话与签名），用于把分享链接里的 `C` 开头应用 id 换成包名。
+     * 国内、海外两个网关依次尝试。
+     */
+    suspend fun webAppInfo(appId: String): JsonObject {
+        val body = buildJsonObject {
+            put("appId", appId)
+            put("locale", "zh_CN")
+        }.toString()
+        for (host in HUAWEI_WEB_HOSTS) {
+            val response = runCatching {
+                client.post("https://$host/edge/webedge/appinfo") {
+                    header(HttpHeaders.ContentType, "application/json")
+                    setBody(body)
+                }
+            }.getOrNull() ?: continue
+            if (!response.status.isSuccess()) continue
+            val root = runCatching { parseJsonObject(response.bodyAsText()) }.getOrNull() ?: continue
+            if (root.str("pkgName").isNotBlank()) return root
+        }
+        throw MarketException("华为应用市场未收录该应用")
     }
 
     /** 首页分页树（`client.front2`），随会话缓存。 */
@@ -406,6 +430,7 @@ private fun huaweiLocale(profile: MarketProfile): String {
 }
 
 private const val HUAWEI_FRONT_METHOD = "client.front2"
+private val HUAWEI_WEB_HOSTS = listOf("web-drcn.hispace.dbankcloud.cn", "web-drcn.hispace.dbankcloud.com")
 private const val HUAWEI_API_VERSION = "1.1"
 private const val HUAWEI_PACKAGE = "com.huawei.appmarket"
 private const val HUAWEI_VERSION_CODE = "160601300"

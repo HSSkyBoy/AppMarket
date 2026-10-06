@@ -2,7 +2,8 @@ package top.app.market.domain.model.market
 
 /**
  * 从商店链接解析出的应用定位。[source] 为 null 表示链接不指向任何已接入的商店（如 Google Play、酷安），
- * 由调用方决定默认来源；[storeAppId] 仅在链接只带站内 id（如 TapTap）时有值。
+ * 由调用方决定默认来源；[storeAppId] 仅在链接只带站内 id（TapTap、华为 `C` 开头的应用 id）时有值，
+ * 此时 [packageName] 为空。
  */
 data class MarketLink(
     val packageName: String,
@@ -11,9 +12,13 @@ data class MarketLink(
 ) {
     /** AppMarket 统一格式，可被本应用的链接解析与剪贴板识别还原。 */
     fun toUnifiedUri(): String = buildString {
-        append(UNIFIED_SCHEME).append("://details?id=").append(packageName)
-        source?.let { append("&source=").append(it.token) }
-        if (storeAppId > 0L) append("&appId=").append(storeAppId)
+        append(UNIFIED_SCHEME).append("://details")
+        val params = buildList {
+            if (packageName.isNotBlank()) add("id=$packageName")
+            source?.let { add("source=${it.token}") }
+            if (storeAppId > 0L) add("appId=$storeAppId")
+        }
+        if (params.isNotEmpty()) append('?').append(params.joinToString("&"))
     }
 
     companion object {
@@ -36,6 +41,23 @@ object MarketLinkParser {
             .firstNotNullOfOrNull(::parse)
     }
 
+    /**
+     * 找出文本中需要联网展开的短链接。只认已知的短链域名，避免去访问剪贴板里的任意网址。
+     * 展开后的链接再交给 [parse]。
+     */
+    fun findShortLink(text: String): String? {
+        if (text.isBlank()) return null
+        return UriInText.findAll(text)
+            .map { it.value.trimEnd('.', ',', ';', '!', '?') }
+            .firstOrNull(::isShortLink)
+    }
+
+    private fun isShortLink(uri: String): Boolean {
+        val parsed = ParsedUri.of(uri) ?: return false
+        return (parsed.scheme == "http" || parsed.scheme == "https") &&
+                parsed.host.matches(*ShortLinkHosts) && parsed.pathSegments.isNotEmpty()
+    }
+
     /** 解析单个 URI。 */
     fun parse(uri: String): MarketLink? {
         val parsed = ParsedUri.of(uri.trim()) ?: return null
@@ -44,12 +66,13 @@ object MarketLinkParser {
         if (packageName != null) {
             return MarketLink(packageName, source, parsed.tapTapAppId().takeIf { source == AppSource.TAPTAP } ?: 0L)
         }
-        // TapTap 的分享链接只带站内 id，详情页可按 id 加载
-        if (source == AppSource.TAPTAP) {
-            val appId = parsed.tapTapAppId() ?: return null
-            return MarketLink(packageName = "", source = AppSource.TAPTAP, storeAppId = appId)
-        }
-        return null
+        // TapTap、华为的分享链接只带站内 id，详情页可按 id 加载
+        val storeAppId = when (source) {
+            AppSource.TAPTAP -> parsed.tapTapAppId()
+            AppSource.HUAWEI -> parsed.huaweiAppId()
+            else -> null
+        } ?: return null
+        return MarketLink(packageName = "", source = source, storeAppId = storeAppId)
     }
 
     private fun ParsedUri.source(): AppSource? {
@@ -100,8 +123,24 @@ object MarketLinkParser {
         return pathSegments.getOrNull(index + 1)?.toLongOrNull()?.takeIf { index >= 0 && it > 0L }
     }
 
+    /** 华为应用 id 形如 `C100404489`；返回去掉 `C` 的数字部分。路径里必须带 `C` 前缀，避免把任意数字当成 id。 */
+    private fun ParsedUri.huaweiAppId(): Long? {
+        listOf("appId", "appid", "app_id", "id").firstNotNullOfOrNull { query(it)?.asHuaweiAppId(prefixRequired = false) }
+            ?.let { return it }
+        return pathSegments.firstNotNullOfOrNull { it.asHuaweiAppId(prefixRequired = true) }
+    }
+
+    private fun String.asHuaweiAppId(prefixRequired: Boolean): Long? {
+        val value = trim()
+        val hasPrefix = value.startsWith("C") || value.startsWith("c")
+        if (prefixRequired && !hasPrefix) return null
+        return value.removePrefix("C").removePrefix("c").toLongOrNull()?.takeIf { it > 0L }
+    }
+
     private fun String.matches(vararg domains: String): Boolean =
         domains.any { this == it || endsWith(".$it") }
+
+    private val ShortLinkHosts = arrayOf("url.cloud.huawei.com")
 
     private val PackageKeys = listOf(
         "id", "packageName", "packagename", "package_name", "package", "pkg", "pkgName", "pkgname",
