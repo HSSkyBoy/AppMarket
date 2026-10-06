@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.app.market.domain.model.install.InstallUserAction
+import top.app.market.domain.model.market.MarketLink
 import top.app.market.domain.model.theme.ThemeColorMode
 import top.app.market.domain.model.theme.ThemeColorSource
 import top.app.market.domain.model.theme.ThemeColorSpec
@@ -69,9 +70,9 @@ import top.yukonga.miuix.kmp.window.WindowDialog
 
 @Composable
 fun App(
-    externalDetailPackageName: String? = null,
+    externalDetailLink: MarketLink? = null,
     externalDetailQuery: String? = null,
-    onExternalDetailConsumed: (String) -> Unit = {},
+    onExternalDetailConsumed: (MarketLink) -> Unit = {},
     externalSearchKeyword: String? = null,
     onExternalSearchConsumed: (String) -> Unit = {},
     externalOpenDownloads: Boolean = false,
@@ -191,7 +192,7 @@ fun App(
                 LocalEnableNavigationBadge provides enableNavigationBadge,
             ) {
                 AppNavigation(
-                    externalDetailPackageName = externalDetailPackageName,
+                    externalDetailLink = externalDetailLink,
                     externalDetailQuery = externalDetailQuery,
                     onExternalDetailConsumed = onExternalDetailConsumed,
                     externalSearchKeyword = externalSearchKeyword,

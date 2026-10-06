@@ -54,6 +54,8 @@ internal class UpdatePreferencesRepositoryImpl(
     override val showSameDeveloper: StateFlow<Boolean> = _showSameDeveloper.asStateFlow()
     private val _showPromotions = MutableStateFlow(false)
     override val showPromotions: StateFlow<Boolean> = _showPromotions.asStateFlow()
+    private val _detectClipboardLinks = MutableStateFlow(UpdatePreferenceKeys.DetectClipboardLinks.default)
+    override val detectClipboardLinks: StateFlow<Boolean> = _detectClipboardLinks.asStateFlow()
     private val _stripAppNameSubtitle = MutableStateFlow(false)
     override val stripAppNameSubtitle: StateFlow<Boolean> = _stripAppNameSubtitle.asStateFlow()
 
@@ -85,6 +87,9 @@ internal class UpdatePreferencesRepositoryImpl(
             observe("showAppComments", preferences.observe(UpdatePreferenceKeys.ShowAppComments)) { _showAppComments.value = it },
             observe("showSameDeveloper", preferences.observe(UpdatePreferenceKeys.ShowSameDeveloper)) { _showSameDeveloper.value = it },
             observe("showPromotions", preferences.observe(UpdatePreferenceKeys.ShowPromotions)) { _showPromotions.value = it },
+            observe("detectClipboardLinks", preferences.observe(UpdatePreferenceKeys.DetectClipboardLinks)) {
+                _detectClipboardLinks.value = it
+            },
             observe("stripAppNameSubtitle", preferences.observe(UpdatePreferenceKeys.StripAppNameSubtitle)) {
                 _stripAppNameSubtitle.value = it
             },
@@ -148,6 +153,15 @@ internal class UpdatePreferencesRepositoryImpl(
 
     override suspend fun setShowSameDeveloper(value: Boolean) =
         preferences.put(UpdatePreferenceKeys.ShowSameDeveloper, value)
+
+    override suspend fun setDetectClipboardLinks(value: Boolean) =
+        preferences.put(UpdatePreferenceKeys.DetectClipboardLinks, value)
+
+    override suspend fun lastClipboardLink(): String =
+        preferences.read(UpdatePreferenceKeys.LastClipboardLink).orEmpty()
+
+    override suspend fun setLastClipboardLink(value: String) =
+        preferences.put(UpdatePreferenceKeys.LastClipboardLink, value)
 
     override suspend fun setShowPromotions(value: Boolean) =
         preferences.put(UpdatePreferenceKeys.ShowPromotions, value)

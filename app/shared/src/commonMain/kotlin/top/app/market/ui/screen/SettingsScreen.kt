@@ -94,6 +94,8 @@ import top.app.market.resources.settings_search_no_results
 import top.app.market.resources.settings_section_download_install
 import top.app.market.resources.show_app_comments
 import top.app.market.resources.show_app_comments_summary
+import top.app.market.resources.clipboard_link_detect
+import top.app.market.resources.clipboard_link_detect_summary
 import top.app.market.resources.show_promotions
 import top.app.market.resources.show_promotions_summary
 import top.app.market.resources.show_same_developer
@@ -206,6 +208,7 @@ fun SettingsTab(
     val showSameDeveloper by updatesViewModel.showSameDeveloper.collectAsStateWithLifecycle()
     val showPromotions by updatesViewModel.showPromotions.collectAsStateWithLifecycle()
     val stripAppNameSubtitle by updatesViewModel.stripAppNameSubtitle.collectAsStateWithLifecycle()
+    val detectClipboardLinks by updatesViewModel.detectClipboardLinks.collectAsStateWithLifecycle()
     val themeColorMode by themePreferences.colorMode.collectAsStateWithLifecycle()
     val themeColorSource by themePreferences.colorSource.collectAsStateWithLifecycle()
     val themePaletteStyle by themePreferences.paletteStyle.collectAsStateWithLifecycle()
@@ -247,6 +250,7 @@ fun SettingsTab(
         showAppComments = showAppComments,
         showSameDeveloper = showSameDeveloper,
         stripAppNameSubtitle = stripAppNameSubtitle,
+        detectClipboardLinks = detectClipboardLinks,
         homePage = homePage,
         colorMode = themeColorMode,
         colorSource = themeColorSource,
@@ -555,6 +559,12 @@ fun SettingsTab(
                             checked = stripAppNameSubtitle,
                             onCheckedChange = updatesViewModel::setStripAppNameSubtitle,
                         )
+                        SwitchPreference(
+                            title = stringResource(Res.string.clipboard_link_detect),
+                            summary = stringResource(Res.string.clipboard_link_detect_summary),
+                            checked = detectClipboardLinks,
+                            onCheckedChange = updatesViewModel::setDetectClipboardLinks,
+                        )
                         ArrowPreference(
                             title = stringResource(Res.string.device_profile),
                             summary = stringResource(Res.string.device_profile_summary),
@@ -670,6 +680,7 @@ private fun settingsSearchEntries(
     showAppComments: Boolean,
     showSameDeveloper: Boolean,
     stripAppNameSubtitle: Boolean,
+    detectClipboardLinks: Boolean,
     homePage: HomePage,
     colorMode: ThemeColorMode,
     colorSource: ThemeColorSource,
@@ -981,6 +992,14 @@ private fun settingsSearchEntries(
                 checked = stripAppNameSubtitle,
                 scope = coroutineScope,
             ) { updatesViewModel.setStripAppNameSubtitle(it) }
+        )
+        add(
+            switchEntry(
+                title = stringResource(Res.string.clipboard_link_detect),
+                summary = stringResource(Res.string.clipboard_link_detect_summary),
+                checked = detectClipboardLinks,
+                scope = coroutineScope,
+            ) { updatesViewModel.setDetectClipboardLinks(it) }
         )
         add(
             SettingsSearchEntry.Link(

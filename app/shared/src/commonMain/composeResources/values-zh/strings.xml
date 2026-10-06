@@ -35,6 +35,9 @@
     <string name="reinstall">重新下载</string>
     <string name="cancel_download">取消下载</string>
     <string name="more_options">更多选项</string>
+    <string name="share">分享</string>
+    <string name="share_link_copied">已复制链接</string>
+    <string name="share_failed">分享失败</string>
     <string name="open_in_other_app_store">使用其他应用商店打开</string>
     <string name="no_other_app_store">未找到其他应用商店</string>
     <string name="save_image">保存图片</string>
@@ -167,6 +170,11 @@
     <string name="filter_reservation_apps_summary">对当前搜索来源生效，隐藏尚未上线的预约应用</string>
     <string name="strip_name_subtitle">优化应用名称</string>
     <string name="strip_name_subtitle_summary">清理应用名称中的推广语，可能出现误裁</string>
+    <string name="clipboard_link_detect">识别剪贴板里的商店链接</string>
+    <string name="clipboard_link_detect_summary">进入应用时，如果剪贴板里有商店链接，会问你要不要打开</string>
+    <string name="clipboard_link_title">要打开这个商店链接吗？</string>
+    <string name="clipboard_link_message">剪贴板里有一个%1$s的应用链接：%2$s</string>
+    <string name="clipboard_link_generic_source">其他商店</string>
     <string name="search_ad_tag">推广</string>
     <string name="search_quickapp_tag">快应用</string>
     <string name="search_sources">搜索来源</string>

@@ -98,6 +98,10 @@ internal class HuaweiApi(
         return records to hasMore
     }
 
+    /** 分享链接只带 `C100404489` 这类应用 id（此处传去掉 `C` 的数字部分）时，先换出包名。 */
+    suspend fun packageNameOf(appId: Long): String =
+        protocol.webAppInfo("C$appId").str("pkgName")
+
     suspend fun detail(packageName: String): HuaweiAppRecord {
         tryBatchDetails(listOf(packageName))
             .filter { it.packageName.equals(packageName, ignoreCase = true) }

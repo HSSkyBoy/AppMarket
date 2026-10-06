@@ -35,6 +35,9 @@
     <string name="reinstall">重新下載</string>
     <string name="cancel_download">取消下載</string>
     <string name="more_options">更多選項</string>
+    <string name="share">分享</string>
+    <string name="share_link_copied">已複製連結</string>
+    <string name="share_failed">分享失敗</string>
     <string name="open_in_other_app_store">使用其他應用商店開啟</string>
     <string name="no_other_app_store">未找到其他應用商店</string>
     <string name="save_image">儲存圖片</string>
@@ -156,6 +159,11 @@
     <string name="filter_reservation_apps_summary">對當前搜尋來源生效，隱藏尚未上線的預約應用程式</string>
     <string name="strip_name_subtitle">最佳化應用程式名稱</string>
     <string name="strip_name_subtitle_summary">清理應用程式名稱中的推廣語，可能出現誤裁</string>
+    <string name="clipboard_link_detect">辨識剪貼簿裡的商店連結</string>
+    <string name="clipboard_link_detect_summary">開啟應用程式時，如果剪貼簿裡有商店連結，會詢問是否開啟</string>
+    <string name="clipboard_link_title">要開啟這個商店連結嗎？</string>
+    <string name="clipboard_link_message">剪貼簿裡有一個%1$s的應用程式連結：%2$s</string>
+    <string name="clipboard_link_generic_source">其他商店</string>
     <string name="search_ad_tag">推廣</string>
     <string name="search_quickapp_tag">快應用</string>
     <string name="search_sources">搜尋來源</string>

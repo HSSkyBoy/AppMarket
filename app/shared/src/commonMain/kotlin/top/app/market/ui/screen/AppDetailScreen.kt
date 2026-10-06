@@ -97,11 +97,13 @@ import top.app.market.domain.model.market.AppPromotion
 import top.app.market.domain.model.market.AppScreenshot
 import top.app.market.domain.model.market.AppSource
 import top.app.market.domain.model.market.AppVideo
+import top.app.market.domain.model.market.MarketLink
 import top.app.market.domain.model.market.MarketAppInfo
 import top.app.market.domain.model.market.ScreenshotOrientation
 import top.app.market.domain.model.market.isDownloadBlocked
 import top.app.market.domain.model.market.isReservation
 import top.app.market.platform.ImageSaveResult
+import top.app.market.platform.ShareResult
 import top.app.market.platform.UiPlatform
 import top.app.market.resources.Res
 import top.app.market.resources.age_rating
@@ -124,6 +126,9 @@ import top.app.market.resources.image_save_unsupported
 import top.app.market.resources.image_saved
 import top.app.market.resources.introduction
 import top.app.market.resources.more_options
+import top.app.market.resources.share
+import top.app.market.resources.share_failed
+import top.app.market.resources.share_link_copied
 import top.app.market.resources.no_other_app_store
 import top.app.market.resources.num_comments
 import top.app.market.resources.open
@@ -286,6 +291,19 @@ fun AppDetailScreen(
             uiPlatform.showToast(message)
         }
     }
+    val shareCopiedText = stringResource(Res.string.share_link_copied)
+    val shareFailedText = stringResource(Res.string.share_failed)
+    val shareApp: () -> Unit = {
+        current?.app?.let { app ->
+            // 仅 TapTap 需要站内 id 才能还原，其余来源只带包名与来源
+            val link = MarketLink(app.packageName, app.source, app.appId.takeIf { app.source == AppSource.TAPTAP } ?: 0L)
+            when (uiPlatform.shareText("$collapsedTitle\n${link.toUnifiedUri()}")) {
+                ShareResult.Shared -> Unit
+                ShareResult.Copied -> uiPlatform.showToast(shareCopiedText)
+                ShareResult.Failed, ShareResult.Unsupported -> uiPlatform.showToast(shareFailedText)
+            }
+        }
+    }
     val phase = when {
         current != null -> DetailPhase.Content
         state.errorMessage.isNotEmpty() -> DetailPhase.Error
@@ -357,11 +375,12 @@ fun AppDetailScreen(
                             minHeight = 32.dp,
                         )
                     }
-                    if (current != null && (canOpenOtherAppStore || canRedownload || canCancelDownload)) {
+                    if (current != null) {
                         DetailMoreMenu(
                             canOpenOtherAppStore = canOpenOtherAppStore,
                             canRedownload = canRedownload,
                             canCancelDownload = canCancelDownload,
+                            onShare = shareApp,
                             onOpenOtherAppStore = { openInOtherAppStore(current.app.packageName) },
                             onRedownload = { viewModel.redownload(current.app) },
                             onClearDownload = { viewModel.clearDownload(current.app.packageName) },
@@ -380,6 +399,7 @@ fun AppDetailScreen(
                                 canOpenOtherAppStore = canOpenOtherAppStore,
                                 canRedownload = canRedownload,
                                 canCancelDownload = canCancelDownload,
+                                onShare = shareApp,
                                 onOpenOtherAppStore = { openInOtherAppStore(current.app.packageName) },
                                 onRedownload = { viewModel.redownload(current.app) },
                                 onClearDownload = { viewModel.clearDownload(current.app.packageName) },
@@ -1363,6 +1383,7 @@ private fun AppDetailHeading(
     canOpenOtherAppStore: Boolean,
     canRedownload: Boolean,
     canCancelDownload: Boolean,
+    onShare: () -> Unit,
     onOpenOtherAppStore: () -> Unit,
     onAction: () -> Unit,
     onResumeDownload: () -> Unit,
@@ -1430,16 +1451,15 @@ private fun AppDetailHeading(
                     onCancel = onCancel,
                     minHeight = 32.dp,
                 )
-                if (canOpenOtherAppStore || canRedownload || canCancelDownload) {
-                    DetailMoreMenu(
-                        canOpenOtherAppStore = canOpenOtherAppStore,
-                        canRedownload = canRedownload,
-                        canCancelDownload = canCancelDownload,
-                        onOpenOtherAppStore = onOpenOtherAppStore,
-                        onRedownload = onRedownload,
-                        onClearDownload = onClearDownload,
-                    )
-                }
+                DetailMoreMenu(
+                    canOpenOtherAppStore = canOpenOtherAppStore,
+                    canRedownload = canRedownload,
+                    canCancelDownload = canCancelDownload,
+                    onShare = onShare,
+                    onOpenOtherAppStore = onOpenOtherAppStore,
+                    onRedownload = onRedownload,
+                    onClearDownload = onClearDownload,
+                )
             }
         }
     }
@@ -1451,6 +1471,7 @@ private fun DetailMoreMenu(
     canOpenOtherAppStore: Boolean,
     canRedownload: Boolean,
     canCancelDownload: Boolean,
+    onShare: () -> Unit,
     onOpenOtherAppStore: () -> Unit,
     onRedownload: () -> Unit,
     onClearDownload: () -> Unit,
@@ -1480,10 +1501,21 @@ private fun DetailMoreMenu(
         ) {
             ListPopupColumn {
                 val optionSize =
-                    (if (canOpenOtherAppStore) 1 else 0) +
+                    1 +
+                            (if (canOpenOtherAppStore) 1 else 0) +
                             (if (canRedownload) 1 else 0) +
                             (if (canCancelDownload) 1 else 0)
                 var optionIndex = 0
+                DropdownImpl(
+                    text = stringResource(Res.string.share),
+                    optionSize = optionSize,
+                    isSelected = false,
+                    index = optionIndex++,
+                    onSelectedIndexChange = {
+                        showMenu = false
+                        onShare()
+                    },
+                )
                 if (canOpenOtherAppStore) {
                     DropdownImpl(
                         text = stringResource(Res.string.open_in_other_app_store),
