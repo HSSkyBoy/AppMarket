@@ -2,6 +2,7 @@
 
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
 
 class DesktopUiPlatform : UiPlatform {
     override val packageInstallationSupported: Boolean = false
@@ -21,6 +22,12 @@ class DesktopUiPlatform : UiPlatform {
         lastClipboardText = text
         return text
     }
+
+    override fun shareText(text: String): ShareResult = runCatching {
+        Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text), null)
+        lastClipboardText = text
+        ShareResult.Copied
+    }.getOrDefault(ShareResult.Failed)
 
     override fun showToast(message: String) {
         println("[toast] $message")

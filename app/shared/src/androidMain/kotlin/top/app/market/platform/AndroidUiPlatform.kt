@@ -39,6 +39,14 @@ class AndroidUiPlatform(
         return clipboard.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
     }
 
+    override fun shareText(text: String): ShareResult {
+        val send = Intent(Intent.ACTION_SEND)
+            .setType("text/plain")
+            .putExtra(Intent.EXTRA_TEXT, text)
+        val chooser = Intent.createChooser(send, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        return if (runCatching { context.startActivity(chooser) }.isSuccess) ShareResult.Shared else ShareResult.Failed
+    }
+
     override fun showToast(message: String) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()

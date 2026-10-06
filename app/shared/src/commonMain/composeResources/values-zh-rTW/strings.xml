@@ -35,6 +35,9 @@
     <string name="reinstall">重新下載</string>
     <string name="cancel_download">取消下載</string>
     <string name="more_options">更多選項</string>
+    <string name="share">分享</string>
+    <string name="share_link_copied">連結已複製到剪貼簿</string>
+    <string name="share_failed">無法分享</string>
     <string name="open_in_other_app_store">使用其他應用商店開啟</string>
     <string name="no_other_app_store">未找到其他應用商店</string>
     <string name="save_image">儲存圖片</string>
