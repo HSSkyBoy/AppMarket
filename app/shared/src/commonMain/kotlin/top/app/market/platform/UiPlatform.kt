@@ -9,4 +9,7 @@ interface UiPlatform {
     fun requestInstalledAppsPermission(onResult: (Boolean) -> Unit): Boolean
     fun requestPostNotificationsPermission(onResult: () -> Unit): Boolean
     suspend fun saveImageToPictures(url: String, fileName: String): ImageSaveResult
+
+    /** 读取剪贴板文本；剪贴板自上次读取后没有变化时返回 null，避免重复读取（Android 每次读取会提示用户）。 */
+    suspend fun readNewClipboardText(): String? = null
 }

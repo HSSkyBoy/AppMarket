@@ -1,7 +1,26 @@
 ﻿package top.app.market.platform
 
+import java.awt.Toolkit
+import java.awt.datatransfer.DataFlavor
+
 class DesktopUiPlatform : UiPlatform {
     override val packageInstallationSupported: Boolean = false
+
+    private var lastClipboardText: String? = null
+
+    override suspend fun readNewClipboardText(): String? {
+        val text = runCatching {
+            val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+            if (clipboard.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
+                clipboard.getData(DataFlavor.stringFlavor) as? String
+            } else {
+                null
+            }
+        }.getOrNull() ?: return null
+        if (text == lastClipboardText) return null
+        lastClipboardText = text
+        return text
+    }
 
     override fun showToast(message: String) {
         println("[toast] $message")
