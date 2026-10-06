@@ -94,6 +94,7 @@ fun AppNavigation(
     }
 
     CompositionLocalProvider(LocalNavigator provides navigator) {
+        ClipboardLinkPrompt(onOpen = { navigator.openMarketLink(it) })
         NavDisplay(
             backStack = backStack,
             onBack = { navigator.pop() },

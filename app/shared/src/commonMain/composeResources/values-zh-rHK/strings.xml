@@ -156,6 +156,11 @@
     <string name="filter_reservation_apps_summary">對當前搜尋來源生效，隱藏仲未上線嘅預約 App</string>
     <string name="strip_name_subtitle">最佳化 App 名稱</string>
     <string name="strip_name_subtitle_summary">清走 App 名入面嘅宣傳語，有機會切錯</string>
+    <string name="clipboard_link_detect">識別剪貼簿入面嘅商店連結</string>
+    <string name="clipboard_link_detect_summary">入 App 嗰陣，如果剪貼簿有商店連結，會問你要唔要開</string>
+    <string name="clipboard_link_title">開啟商店連結？</string>
+    <string name="clipboard_link_message">剪貼簿入面有來自%1$s嘅 App 連結：%2$s</string>
+    <string name="clipboard_link_generic_source">其他商店</string>
     <string name="search_ad_tag">廣告推廣</string>
     <string name="search_quickapp_tag">快應用</string>
     <string name="search_sources">搜尋來源</string>

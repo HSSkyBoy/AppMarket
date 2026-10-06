@@ -166,6 +166,11 @@
     <string name="filter_reservation_apps_summary">Applies to the current search source. Hide unreleased pre-order apps.</string>
     <string name="strip_name_subtitle">Simplify app names</string>
     <string name="strip_name_subtitle_summary">Remove promotional text from app names; parts of the actual name may be removed by mistake.</string>
+    <string name="clipboard_link_detect">Detect store links in clipboard</string>
+    <string name="clipboard_link_detect_summary">When entering the app, ask whether to open a store link found in the clipboard</string>
+    <string name="clipboard_link_title">Open store link?</string>
+    <string name="clipboard_link_message">The clipboard contains an app link from %1$s: %2$s</string>
+    <string name="clipboard_link_generic_source">another store</string>
     <string name="search_ad_tag">Promoted</string>
     <string name="search_quickapp_tag">Quick app</string>
     <string name="search_sources">Search sources</string>

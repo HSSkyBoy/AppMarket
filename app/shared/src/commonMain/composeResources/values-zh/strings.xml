@@ -167,6 +167,11 @@
     <string name="filter_reservation_apps_summary">对当前搜索来源生效，隐藏尚未上线的预约应用</string>
     <string name="strip_name_subtitle">优化应用名称</string>
     <string name="strip_name_subtitle_summary">清理应用名称中的推广语，可能出现误裁</string>
+    <string name="clipboard_link_detect">识别剪贴板中的商店链接</string>
+    <string name="clipboard_link_detect_summary">进入应用时，如果剪贴板里有商店链接，询问是否打开</string>
+    <string name="clipboard_link_title">打开商店链接？</string>
+    <string name="clipboard_link_message">剪贴板中有来自%1$s的应用链接：%2$s</string>
+    <string name="clipboard_link_generic_source">其他商店</string>
     <string name="search_ad_tag">推广</string>
     <string name="search_quickapp_tag">快应用</string>
     <string name="search_sources">搜索来源</string>
