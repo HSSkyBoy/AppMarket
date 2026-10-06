@@ -28,6 +28,7 @@
   - [目录](#目录)
   - [特性概览](#特性概览)
   - [支持的应用源](#支持的应用源)
+  - [商店链接识别](#商店链接识别)
   - [安装方式与安装器](#安装方式与安装器)
   - [编译与开发](#编译与开发)
     - [环境要求](#环境要求)
@@ -52,6 +53,7 @@
   - **过滤快应用**：一键隐藏免安装快应用结果。
   - **过滤预约应用**：过滤尚未上线的预注册应用。
   - **优化应用名称**：智能裁剪应用名称后携带的营销副标题与推广宣传语。
+- **商店链接识别**：认得各家应用商店的链接（含分享文案中的链接），进入应用时可识别剪贴板并询问是否打开；Android 上可被选为这些链接的打开方式，详见 [商店链接识别](#商店链接识别)。
 - **历史版本回退**：接入海量应用历史库，支持按版本追溯并下载历史版本 APK。
 - **设备指纹与机型模拟**：内置预设及自定义 `MarketProfile`（机型、Android 版本、SDK、分辨率、区域等），解决特定厂商或生态专属应用不可见问题。
 - **系统生态深度优化**：支持小米 HyperOS 超级岛优化、焦点通知优化等。
@@ -75,6 +77,65 @@
 
 > _\* 注：豌豆荚无原生批量更新元数据协议，更新检查时目前转发到小米源处理。_
 > _分区浏览（「游戏」「应用」页）无原生接口的来源会自动回退到小米官方分类。_
+
+---
+
+## 商店链接识别
+
+AppMarket 能解析各家应用商店的应用详情链接，并在应用内打开对应详情页，有三个入口：
+
+- **系统链接**（Android）：在浏览器、聊天软件中点击商店链接，可选择用 AppMarket 打开。
+- **剪贴板识别**：进入应用（窗口获得焦点）时读取剪贴板，识别到商店链接就弹窗询问是否打开；同一链接只询问一次，可在 设置 中关闭「识别剪贴板中的商店链接」。Android 12 及以上读取剪贴板内容时系统会提示，因此仅在剪贴板内容变化时才读取。
+- **分享文案**：剪贴板里的整段文字（如「【微信】快来下载吧！https://app.mi.com/details?id=…」）也会被识别，取第一个可识别的链接。
+
+**统一格式**：`appmarket://details?id=<包名>&source=<来源标识>`，来源标识见上表。华为应用市场本身使用 `appmarket://details?id=`，因此不带 `source` 时按华为处理，两者相容。
+
+### 可识别的链接
+
+包名取自查询参数（`id`、`packageName`、`pkgName`、`pname`、`package`、`pkg` 等，含 `#` 之后的参数）或路径段（如三星 `/detail/<包名>`、豌豆荚 `/apps/<包名>`）。TapTap 只带站内 id 的链接（`/app/<id>`）也可打开。
+
+| 来源              | scheme                                    | 网页域名                                                  |
+| :---------------- | :---------------------------------------- | :-------------------------------------------------------- |
+| 统一格式          | `appmarket://`                            | —                                                         |
+| 小米              | `mimarket://`                             | `app.mi.com`、`app.xiaomi.com`                            |
+| 华为              | `hiapp://`、`hwmarket://`                 | `appgallery.huawei.com`、`appgallery.cloud.huawei.com`、`appstore.huawei.com` |
+| vivo              | `vivomarket://`                           | `vivo.com.cn`、`vivo.com`                                 |
+| OPPO              | `oppomarket://`、`heytapmarket://`、`oaps://` | `heytap.com`、`oppomobile.com`、`heytapmobi.com`      |
+| 荣耀              | `honormarket://`、`hnappmarket://`        | `hihonor.com`、`honor.com`                                |
+| 三星              | `samsungapps://`                          | `galaxystore.samsung.com`、`apps.samsung.com`             |
+| TapTap            | `taptap://`                               | `taptap.cn`、`taptap.com`、`taptap.io`                    |
+| 豌豆荚            | `wandoujia://`                            | `wandoujia.com`                                           |
+| 其他（无对应来源） | `market://`                               | `play.google.com`、`market.android.com`、`coolapk.com`    |
+
+只有域名匹配、但链接里取不到包名的（如华为只带 `C` 开头 id 的链接）不会被识别。
+
+### 打开到哪个来源
+
+- 小米、华为、荣耀、TapTap：仅凭包名即可加载详情，在链接指明的来源中打开。
+- vivo、OPPO、三星、豌豆荚：仅凭包名查不到详情，改由小米打开（TapTap 带站内 id 时除外）。
+- Google Play、酷安、通用 `market://`：无对应来源，由小米打开。
+
+### 系统打开方式（Android）
+
+`AndroidManifest.xml` 声明的范围是上表的子集：
+
+- **scheme**：`market`、`mimarket`（详情 / 搜索）；`appmarket`、`hiapp`、`hwmarket`、`vivomarket`、`oppomarket`、`heytapmarket`、`oaps`、`honormarket`、`hnappmarket`、`samsungapps`、`taptap`、`wandoujia`（不限 host）。
+- **网页**（按路径前缀限定，不接管整站）：
+
+  | 域名                                                   | 路径前缀              |
+  | :----------------------------------------------------- | :-------------------- |
+  | `m.app.mi.com`                                         | `/details`            |
+  | `app.xiaomi.com`                                       | `/`                   |
+  | `appgallery.huawei.com`、`appgallery.cloud.huawei.com` | `/appDetail`          |
+  | `h5.appstore.vivo.com.cn`                              | `/`                   |
+  | `galaxystore.samsung.com`                              | `/detail`             |
+  | `www.wandoujia.com`                                    | `/apps`               |
+  | `www.taptap.cn`、`www.taptap.com`                      | `/app`                |
+  | `play.google.com`                                      | `/store/apps/details` |
+  | `www.coolapk.com`                                      | `/apk`                |
+
+- 解析器认得、但 Manifest 未声明的网页链接（OPPO、荣耀的全部网页，以及 `appstore.huawei.com`、`apps.samsung.com`、`taptap.io`、`market.android.com`）：复制到剪贴板仍会被识别，但在浏览器中点击不会跳转到 AppMarket。
+- 网页链接未做域名验证，系统通常会弹出选择器，而不是直接用 AppMarket 打开。
 
 ---
 
