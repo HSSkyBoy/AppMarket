@@ -23,6 +23,7 @@ object StorePackageNames {
         AppSource.SAMSUNG -> SAMSUNG
         AppSource.TAPTAP,
         AppSource.WANDOUJIA,
+        AppSource.BOX7723,
         null -> GOOGLE_PLAY
     }
 }

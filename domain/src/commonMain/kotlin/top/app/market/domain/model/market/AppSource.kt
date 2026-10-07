@@ -1,4 +1,4 @@
-﻿package top.app.market.domain.model.market
+package top.app.market.domain.model.market
 
 /** 搜索结果来源。[MarketAppInfo.appId] 语义随来源而变，均为对应商店的站内应用 id。 */
 enum class AppSource(val token: String, val capabilities: SourceCapabilities) {
@@ -106,6 +106,18 @@ enum class AppSource(val token: String, val capabilities: SourceCapabilities) {
             supportsTodayFeed = true,
             todayFullCoverOverlay = false,
             supportsUpdates = true,
+        ),
+    ),
+    BOX7723(
+        "7723",
+        SourceCapabilities(
+            supportsComments = false,
+            supportsSameDeveloperApps = false,
+            prefersOpenLinkLaunch = true,
+            reportsDeltaSize = false,
+            supportsTodayFeed = false,
+            todayFullCoverOverlay = false,
+            supportsUpdates = false,
         ),
     );
 

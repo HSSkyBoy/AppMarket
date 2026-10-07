@@ -1,4 +1,4 @@
-﻿package top.app.market.viewmodel
+package top.app.market.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -301,7 +301,7 @@ class DeviceProfileViewModel(
             AppSource.SAMSUNG -> SAMSUNG_FIELDS
             AppSource.HONOR -> HONOR_FIELDS
             AppSource.HUAWEI -> HUAWEI_FIELDS
-            AppSource.XIAOMI, AppSource.WANDOUJIA, AppSource.TAPTAP -> FIELDS
+            AppSource.XIAOMI, AppSource.WANDOUJIA, AppSource.TAPTAP, AppSource.BOX7723 -> FIELDS
         }
 
         fun hasCustomSamsungRequestContext(

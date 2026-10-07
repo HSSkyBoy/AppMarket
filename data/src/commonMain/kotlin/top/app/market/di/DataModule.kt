@@ -1,4 +1,4 @@
-﻿package top.app.market.di
+package top.app.market.di
 
 import top.app.market.data.download.RecordingDownloadRepositoryImpl
 import top.app.market.data.platform.debugLog
@@ -19,7 +19,10 @@ import top.app.market.data.remote.xiaomi.UpdateInfoCache
 import top.app.market.data.remote.xiaomi.XiaomiApi
 import top.app.market.data.remote.xiaomi.XiaomiClient
 import top.app.market.data.remote.xiaomi.XiaomiHttpClient
+import top.app.market.data.remote.box7723.Box7723Api
+import top.app.market.data.remote.box7723.Box7723ApiConfig
 import top.app.market.data.repository.AnonymousAccountRepositoryImpl
+import top.app.market.data.repository.Box7723RepositoryImpl
 import top.app.market.data.repository.HonorRepositoryImpl
 import top.app.market.data.repository.HuaweiRepositoryImpl
 import top.app.market.data.repository.MarketLinkResolverImpl
@@ -37,6 +40,7 @@ import top.app.market.data.store.ThemePreferencesRepositoryImpl
 import top.app.market.data.store.UpdateHistoryRepositoryImpl
 import top.app.market.data.store.UpdatePreferencesRepositoryImpl
 import top.app.market.domain.repository.AccountRepository
+import top.app.market.domain.repository.Box7723Repository
 import top.app.market.domain.repository.DownloadRepository
 import top.app.market.domain.repository.HonorRepository
 import top.app.market.domain.repository.HuaweiRepository
@@ -108,6 +112,9 @@ private val commonDataModule = module {
     single { TapTapApiConfig() }
     singleOf(::TapTapApi)
     singleOf(::TapTapRepositoryImpl) { bind<TapTapRepository>() }
+    single { Box7723ApiConfig() }
+    singleOf(::Box7723Api)
+    singleOf(::Box7723RepositoryImpl) { bind<Box7723Repository>() }
     singleOf(::MarketSourceRepositoryImpl) { bind<MarketSourceRepository>() }
 
     singleOf(::RecordingDownloadRepositoryImpl) { bind<DownloadRepository>() }

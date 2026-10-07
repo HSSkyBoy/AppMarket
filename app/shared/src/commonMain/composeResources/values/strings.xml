@@ -193,6 +193,7 @@
     <string name="source_honor">Honor</string>
     <string name="source_huawei">Huawei</string>
     <string name="source_taptap">TapTap</string>
+    <string name="source_box7723">7723</string>
     <string name="historical_versions">Historical versions</string>
     <string name="historical_versions_summary">View all versions</string>
     <string name="historical_versions_title">%1$s versions</string>

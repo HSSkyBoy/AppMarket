@@ -183,6 +183,7 @@
     <string name="source_honor">榮耀</string>
     <string name="source_huawei">華為</string>
     <string name="source_taptap">TapTap</string>
+    <string name="source_box7723">7723</string>
     <string name="historical_versions">歷史版本</string>
     <string name="historical_versions_summary">睇返所有版本</string>
     <string name="historical_versions_title">%1$s嘅歷史版本</string>

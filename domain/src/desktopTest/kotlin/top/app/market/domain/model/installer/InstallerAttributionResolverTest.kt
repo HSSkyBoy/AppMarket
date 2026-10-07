@@ -46,6 +46,10 @@ class InstallerAttributionResolverTest {
         )
         assertEquals(
             StorePackageNames.GOOGLE_PLAY,
+            InstallerAttributionResolver.resolve(InstallerAttributionMode.AUTO_BY_SOURCE, AppSource.BOX7723),
+        )
+        assertEquals(
+            StorePackageNames.GOOGLE_PLAY,
             InstallerAttributionResolver.resolve(InstallerAttributionMode.AUTO_BY_SOURCE, null),
         )
     }
