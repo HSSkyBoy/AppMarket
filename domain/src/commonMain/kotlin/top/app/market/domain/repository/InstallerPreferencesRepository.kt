@@ -1,5 +1,6 @@
-﻿package top.app.market.domain.repository
+package top.app.market.domain.repository
 
+import top.app.market.domain.model.installer.InstallerAttributionMode
 import top.app.market.domain.model.installer.InstallerMode
 
 /** Persisted installer settings and availability of platform-dependent installer options. */
@@ -32,4 +33,9 @@ interface InstallerPreferencesRepository {
     fun xiaomiIslandSupported(): Boolean
     suspend fun xiaomiIslandOptimizationEnabled(): Boolean
     suspend fun setXiaomiIslandOptimizationEnabled(enabled: Boolean)
+
+    suspend fun attributionMode(): InstallerAttributionMode
+    suspend fun setAttributionMode(mode: InstallerAttributionMode)
+    suspend fun attributionCustomPackage(): String
+    suspend fun setAttributionCustomPackage(packageName: String)
 }

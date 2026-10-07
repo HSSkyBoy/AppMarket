@@ -1,8 +1,9 @@
-﻿package top.app.market.viewmodel
+package top.app.market.viewmodel
 
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import top.app.market.domain.model.installer.InstallerAttributionMode
 import top.app.market.domain.model.installer.InstallerCandidate
 import top.app.market.domain.model.installer.InstallerMode
 import top.app.market.domain.repository.InstallerDiscoveryRepository
@@ -31,6 +32,9 @@ data class InstallerSettingsUiState(
     val installerCandidates: List<InstallerCandidate> = emptyList(),
     val thirdPartyInstallerPackage: String = "",
     val showInstallerPicker: Boolean = false,
+    val attributionMode: InstallerAttributionMode = InstallerAttributionMode.AUTO_BY_SOURCE,
+    val attributionCustomPackage: String = "",
+    val showCustomAttributionDialog: Boolean = false,
 )
 
 class InstallerSettingsViewModel(
@@ -88,6 +92,8 @@ class InstallerSettingsViewModel(
             installationSupported = installationSupported,
             installerCandidates = candidates,
             thirdPartyInstallerPackage = selectedPackage,
+            attributionMode = controller.attributionMode(),
+            attributionCustomPackage = controller.attributionCustomPackage(),
         )
     }
 
@@ -178,5 +184,32 @@ class InstallerSettingsViewModel(
     fun setXiaomiIslandOptimizationEnabled(enabled: Boolean) {
         _uiState.update { it.copy(xiaomiIslandOptimizationEnabled = enabled) }
         viewModelScope.launch { controller.setXiaomiIslandOptimizationEnabled(enabled) }
+    }
+
+    fun setAttributionMode(mode: InstallerAttributionMode) {
+        _uiState.update { it.copy(attributionMode = mode) }
+        viewModelScope.launch { controller.setAttributionMode(mode) }
+        if (mode == InstallerAttributionMode.CUSTOM && _uiState.value.attributionCustomPackage.isBlank()) {
+            showCustomAttributionDialog()
+        }
+    }
+
+    fun showCustomAttributionDialog() {
+        _uiState.update { it.copy(showCustomAttributionDialog = true) }
+    }
+
+    fun dismissCustomAttributionDialog() {
+        _uiState.update { it.copy(showCustomAttributionDialog = false) }
+    }
+
+    fun setAttributionCustomPackage(packageName: String) {
+        val trimmed = packageName.trim()
+        _uiState.update {
+            it.copy(
+                attributionCustomPackage = trimmed,
+                showCustomAttributionDialog = false,
+            )
+        }
+        viewModelScope.launch { controller.setAttributionCustomPackage(trimmed) }
     }
 }

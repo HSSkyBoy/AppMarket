@@ -1,4 +1,4 @@
-﻿package top.app.market.ui.screen
+package top.app.market.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,17 +11,35 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.app.market.domain.model.installer.InstallerAttributionMode
 import top.app.market.domain.model.installer.InstallerMode
 import top.app.market.resources.Res
 import top.app.market.resources.cancel
+import top.app.market.resources.installer_attribution
+import top.app.market.resources.installer_attribution_auto
+import top.app.market.resources.installer_attribution_auto_summary
+import top.app.market.resources.installer_attribution_custom
+import top.app.market.resources.installer_attribution_custom_hint
+import top.app.market.resources.installer_attribution_custom_summary
+import top.app.market.resources.installer_attribution_custom_title
+import top.app.market.resources.installer_attribution_google_play
+import top.app.market.resources.installer_attribution_google_play_summary
+import top.app.market.resources.installer_attribution_none
+import top.app.market.resources.installer_attribution_none_summary
 import top.app.market.resources.installer_delete_after_install
 import top.app.market.resources.installer_delete_after_install_summary
 import top.app.market.resources.installer_mode_default
@@ -41,13 +59,18 @@ import top.app.market.resources.installer_pick
 import top.app.market.resources.installer_save_to_downloads
 import top.app.market.resources.installer_save_to_downloads_summary
 import top.app.market.resources.installer_section
+import top.app.market.resources.save
 import top.app.market.ui.component.AppTextButton
 import top.app.market.ui.component.MarketScaffold
 import top.app.market.ui.component.PageVerticalPadding
 import top.app.market.viewmodel.InstallerSettingsViewModel
 import org.jetbrains.compose.resources.stringResource
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.RadioButtonLocation
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
@@ -113,6 +136,61 @@ fun InstallerSettingsScreen(
                         selected = state.mode == InstallerMode.THIRD_PARTY,
                         onClick = viewModel::showThirdPartyInstallerPicker,
                     )
+                }
+            }
+
+            if (state.mode == InstallerMode.ROOT || state.mode == InstallerMode.SHIZUKU) {
+                item(key = "attribution") {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        val attributionModes = listOf(
+                            InstallerAttributionMode.AUTO_BY_SOURCE,
+                            InstallerAttributionMode.GOOGLE_PLAY,
+                            InstallerAttributionMode.CUSTOM,
+                            InstallerAttributionMode.NONE,
+                        )
+                        val attributionItems = listOf(
+                            stringResource(Res.string.installer_attribution_auto),
+                            stringResource(Res.string.installer_attribution_google_play),
+                            stringResource(Res.string.installer_attribution_custom),
+                            stringResource(Res.string.installer_attribution_none),
+                        )
+                        val attributionSummary = when (state.attributionMode) {
+                            InstallerAttributionMode.AUTO_BY_SOURCE ->
+                                stringResource(Res.string.installer_attribution_auto_summary)
+                            InstallerAttributionMode.GOOGLE_PLAY ->
+                                stringResource(Res.string.installer_attribution_google_play_summary)
+                            InstallerAttributionMode.CUSTOM -> {
+                                if (state.attributionCustomPackage.isNotBlank()) {
+                                    stringResource(
+                                        Res.string.installer_attribution_custom_summary,
+                                        state.attributionCustomPackage,
+                                    )
+                                } else {
+                                    stringResource(Res.string.installer_attribution_custom_hint)
+                                }
+                            }
+                            InstallerAttributionMode.NONE ->
+                                stringResource(Res.string.installer_attribution_none_summary)
+                        }
+                        OverlayDropdownPreference(
+                            title = stringResource(Res.string.installer_attribution),
+                            summary = attributionSummary,
+                            items = attributionItems,
+                            selectedIndex = attributionModes.indexOf(state.attributionMode).coerceAtLeast(0),
+                            onSelectedIndexChange = { index ->
+                                attributionModes.getOrNull(index)?.let(viewModel::setAttributionMode)
+                            },
+                        )
+                        if (state.attributionMode == InstallerAttributionMode.CUSTOM) {
+                            ArrowPreference(
+                                title = stringResource(Res.string.installer_attribution_custom_title),
+                                summary = state.attributionCustomPackage.ifBlank {
+                                    stringResource(Res.string.installer_attribution_custom_hint)
+                                },
+                                onClick = viewModel::showCustomAttributionDialog,
+                            )
+                        }
+                    }
                 }
             }
 
@@ -204,6 +282,45 @@ fun InstallerSettingsScreen(
                 onClick = viewModel::dismissThirdPartyInstallerPicker,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             )
+        }
+    }
+
+    if (state.showCustomAttributionDialog) {
+        var customInput by remember(state.showCustomAttributionDialog, state.attributionCustomPackage) {
+            mutableStateOf(state.attributionCustomPackage)
+        }
+        WindowDialog(
+            show = state.showCustomAttributionDialog,
+            title = stringResource(Res.string.installer_attribution_custom_title),
+            onDismissRequest = viewModel::dismissCustomAttributionDialog,
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 260.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                TextField(
+                    value = customInput,
+                    onValueChange = { customInput = it },
+                    label = stringResource(Res.string.installer_attribution_custom_title),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    AppTextButton(
+                        text = stringResource(Res.string.cancel),
+                        onClick = viewModel::dismissCustomAttributionDialog,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    AppTextButton(
+                        text = stringResource(Res.string.save),
+                        enabled = customInput.isNotBlank(),
+                        colors = ButtonDefaults.textButtonColorsPrimary(),
+                        onClick = { viewModel.setAttributionCustomPackage(customInput) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
         }
     }
 }

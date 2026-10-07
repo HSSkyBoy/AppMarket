@@ -1,4 +1,4 @@
-﻿package top.app.market.data.local.preferences
+package top.app.market.data.local.preferences
 
 import top.app.market.data.local.BooleanPreferenceKey
 import top.app.market.data.local.StringPreferenceKey
@@ -16,4 +16,6 @@ internal object InstallerPreferenceKeys {
     val DeltaUpdate = BooleanPreferenceKey(Namespace, "delta_update", default = true)
     val DeltaFallbackNotice = BooleanPreferenceKey(Namespace, "delta_fallback_notice", default = true)
     val XiaomiIslandOptimization = BooleanPreferenceKey(Namespace, "xiaomi_island_optimization")
+    val AttributionMode = StringPreferenceKey(Namespace, "attribution_mode")
+    val AttributionCustomPackage = StringPreferenceKey(Namespace, "attribution_custom_pkg")
 }

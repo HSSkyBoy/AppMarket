@@ -1,4 +1,4 @@
-﻿package top.app.market.data.install
+package top.app.market.data.install
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -15,6 +15,7 @@ import top.app.market.data.platform.debugLog
 import top.app.market.domain.model.install.InstallEvent
 import top.app.market.domain.model.install.InstallRequest
 import top.app.market.domain.model.install.InstallSource
+import top.app.market.domain.model.installer.InstallerAttributionResolver
 import top.app.market.domain.model.installer.InstallerMode
 import top.app.market.domain.repository.InstallRepository
 import top.app.market.domain.repository.InstallerDiscoveryRepository
@@ -78,7 +79,8 @@ internal class AndroidInstallRepositoryImpl(
                 send(InstallEvent.Progress(completed, total))
             }
             // 第二阶段：本地数据写入安装会话；仅本地源（保存的安装包）在此阶段报进度
-            access = backends.get(mode).open()
+            val resolvedCallerPackage = resolveCallerPackageName(request)
+            access = backends.get(mode).open(resolvedCallerPackage)
             pendingPackage = request.takeIf {
                 it.saveToDownloads && it.sourceSavedPackageId == null
             }?.let { packageStore.createPending(it) }
@@ -165,6 +167,17 @@ internal class AndroidInstallRepositoryImpl(
     private fun progressMarker(completed: Long, total: Long): Long =
         if (total > 0L) (completed.coerceAtMost(total) * 100L) / total
         else completed / PROGRESS_STEP_BYTES
+
+    private suspend fun resolveCallerPackageName(request: InstallRequest): String {
+        val attributionMode = preferences.attributionMode()
+        val customPackage = preferences.attributionCustomPackage()
+        return InstallerAttributionResolver.resolve(
+            mode = attributionMode,
+            marketSource = request.marketSource,
+            customPackage = customPackage,
+            fallbackPackageName = context.packageName,
+        )
+    }
 
     private suspend fun shouldRequestUserActionNotRequired(mode: InstallerMode): Boolean {
         if (

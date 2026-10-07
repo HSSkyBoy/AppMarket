@@ -1,4 +1,4 @@
-﻿package top.app.market.data.install.backend
+package top.app.market.data.install.backend
 
 import android.content.pm.PackageInstaller
 import top.app.market.domain.model.installer.InstallerMode
@@ -6,7 +6,7 @@ import java.io.Closeable
 
 internal interface InstallerBackend {
     val mode: InstallerMode
-    suspend fun open(): PackageInstallerAccess
+    suspend fun open(callerPackageName: String = XIAOMI_MARKET_PACKAGE_NAME): PackageInstallerAccess
 }
 
 internal class PackageInstallerAccess(

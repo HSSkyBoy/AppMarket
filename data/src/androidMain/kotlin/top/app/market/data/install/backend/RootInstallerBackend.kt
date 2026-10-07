@@ -1,4 +1,4 @@
-﻿package top.app.market.data.install.backend
+package top.app.market.data.install.backend
 
 import top.app.market.data.install.backend.root.RootBinderBridge
 import top.app.market.domain.model.installer.InstallerMode
@@ -9,12 +9,12 @@ internal class RootInstallerBackend(
 ) : InstallerBackend {
     override val mode: InstallerMode = InstallerMode.ROOT
 
-    override suspend fun open(): PackageInstallerAccess {
+    override suspend fun open(callerPackageName: String): PackageInstallerAccess {
         val bridge = rootBridge.open()
         return try {
             factory.create(
                 wrapBinder = bridge::wrap,
-                callerPackageName = XIAOMI_MARKET_PACKAGE_NAME,
+                callerPackageName = callerPackageName,
                 closeAction = bridge::close,
             )
         } catch (error: Throwable) {

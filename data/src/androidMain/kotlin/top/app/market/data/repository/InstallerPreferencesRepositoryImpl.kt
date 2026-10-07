@@ -1,4 +1,4 @@
-﻿package top.app.market.data.repository
+package top.app.market.data.repository
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
@@ -7,6 +7,7 @@ import top.app.market.data.install.HyperOsFocusCapability
 import top.app.market.data.local.PreferenceChanges
 import top.app.market.data.local.PreferencesDataSource
 import top.app.market.data.local.preferences.InstallerPreferenceKeys
+import top.app.market.domain.model.installer.InstallerAttributionMode
 import top.app.market.domain.model.installer.InstallerMode
 import top.app.market.domain.repository.InstallerPreferencesRepository
 import kotlinx.coroutines.sync.Mutex
@@ -87,6 +88,20 @@ internal class InstallerPreferencesRepositoryImpl(
 
     override suspend fun setXiaomiIslandOptimizationEnabled(enabled: Boolean) {
         preferences.put(InstallerPreferenceKeys.XiaomiIslandOptimization, enabled)
+    }
+
+    override suspend fun attributionMode(): InstallerAttributionMode =
+        InstallerAttributionMode.fromKey(preferences.read(InstallerPreferenceKeys.AttributionMode))
+
+    override suspend fun setAttributionMode(mode: InstallerAttributionMode) {
+        preferences.put(InstallerPreferenceKeys.AttributionMode, mode.key)
+    }
+
+    override suspend fun attributionCustomPackage(): String =
+        preferences.read(InstallerPreferenceKeys.AttributionCustomPackage).orEmpty()
+
+    override suspend fun setAttributionCustomPackage(packageName: String) {
+        preferences.put(InstallerPreferenceKeys.AttributionCustomPackage, packageName)
     }
 
     private suspend fun migrateSavePreference() = migrationMutex.withLock {

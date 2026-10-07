@@ -1,4 +1,4 @@
-﻿package top.app.market.data.install.backend
+package top.app.market.data.install.backend
 
 import android.content.pm.PackageManager
 import top.app.market.data.install.InstallPipelineException
@@ -17,11 +17,11 @@ internal class ShizukuInstallerBackend(
 ) : InstallerBackend {
     override val mode: InstallerMode = InstallerMode.SHIZUKU
 
-    override suspend fun open(): PackageInstallerAccess {
+    override suspend fun open(callerPackageName: String): PackageInstallerAccess {
         requirePermission()
         return factory.create(
             wrapBinder = { binder -> ShizukuBinderWrapper(binder) },
-            callerPackageName = XIAOMI_MARKET_PACKAGE_NAME,
+            callerPackageName = callerPackageName,
         )
     }
 

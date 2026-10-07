@@ -1,6 +1,7 @@
-﻿package top.app.market.data.repository
+package top.app.market.data.repository
 
 import top.app.market.domain.model.installed.PackageChange
+import top.app.market.domain.model.installer.InstallerAttributionMode
 import top.app.market.domain.model.installer.InstallerCandidate
 import top.app.market.domain.model.installer.InstallerMode
 import top.app.market.domain.model.installer.SavedPackage
@@ -49,6 +50,11 @@ class DesktopInstallerPreferencesRepositoryImpl : InstallerPreferencesRepository
     override suspend fun setXiaomiIslandOptimizationEnabled(enabled: Boolean) {}
     override suspend fun autoLaunchConfirmUi(): Boolean = true
     override suspend fun setAutoLaunchConfirmUi(enabled: Boolean) {}
+    override suspend fun attributionMode(): InstallerAttributionMode =
+        InstallerAttributionMode.AUTO_BY_SOURCE
+    override suspend fun setAttributionMode(mode: InstallerAttributionMode) {}
+    override suspend fun attributionCustomPackage(): String = ""
+    override suspend fun setAttributionCustomPackage(packageName: String) {}
 }
 
 class DesktopInstallerDiscoveryRepositoryImpl : InstallerDiscoveryRepository {
