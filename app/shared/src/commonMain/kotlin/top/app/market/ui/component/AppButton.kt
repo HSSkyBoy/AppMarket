@@ -225,7 +225,10 @@ private fun tintedContainerColor(): Color =
 @Composable
 private fun appTintedButtonColors(): ButtonColors = ButtonDefaults.buttonColors(
     color = tintedContainerColor(),
-    contentColor = MiuixTheme.colorScheme.primary,
+    contentColor = contrastColor(
+        foreground = MiuixTheme.colorScheme.primary,
+        background = tintedContainerColor().compositeOver(MiuixTheme.colorScheme.surface),
+    ),
 )
 
 @Composable
@@ -319,8 +322,14 @@ private fun DownloadProgressButton(
 ) {
     val primary = MiuixTheme.colorScheme.primary
     val base = tintedContainerColor()
-    val baseTextColor = contrastColor(base.compositeOver(MiuixTheme.colorScheme.surface))
-    val fillTextColor = contrastColor(primary)
+    val baseTextColor = contrastColor(
+        foreground = primary,
+        background = base.compositeOver(MiuixTheme.colorScheme.surface),
+    )
+    val fillTextColor = contrastColor(
+        foreground = MiuixTheme.colorScheme.onPrimary,
+        background = primary,
+    )
     val animatedFraction = animateFloatAsState(
         targetValue = fraction.coerceIn(0f, 1f),
         animationSpec = tween(durationMillis = 300),
@@ -371,7 +380,17 @@ private fun DownloadProgressButton(
     }
 }
 
-/** Black or white, whichever contrasts the given background luminance. */
-@Composable
-private fun contrastColor(background: Color): Color =
-    if (background.luminance() > 0.5f) MiuixTheme.colorScheme.primary else Color.White
+internal fun contrastRatio(c1: Color, c2: Color): Float {
+    val l1 = c1.luminance()
+    val l2 = c2.luminance()
+    val max = maxOf(l1, l2)
+    val min = minOf(l1, l2)
+    return (max + 0.05f) / (min + 0.05f)
+}
+
+internal fun contrastColor(foreground: Color, background: Color): Color {
+    if (contrastRatio(foreground, background) >= 3.0f) {
+        return foreground
+    }
+    return if (background.luminance() > 0.5f) Color.Black else Color.White
+}
