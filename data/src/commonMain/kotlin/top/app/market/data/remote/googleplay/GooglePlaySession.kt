@@ -85,7 +85,7 @@ internal class GooglePlaySessionProvider(
 
     private companion object {
         val SessionTtl = 6.hours
-        const val DispenserUserAgent = "AppMarket"
+        const val DispenserUserAgent = "com.aurora.store-4.8.4-76"
     }
 }
 
