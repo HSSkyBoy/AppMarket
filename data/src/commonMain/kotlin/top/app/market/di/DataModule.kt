@@ -24,6 +24,9 @@ import top.app.market.data.remote.box7723.Box7723ApiConfig
 import top.app.market.data.remote.fdroid.FDroidApi
 import top.app.market.data.repository.AnonymousAccountRepositoryImpl
 import top.app.market.data.repository.Box7723RepositoryImpl
+import top.app.market.data.remote.tencent.TencentApi
+import top.app.market.data.repository.TencentRepositoryImpl
+import top.app.market.domain.repository.TencentRepository
 import top.app.market.data.remote.googleplay.GooglePlayApi
 import top.app.market.data.remote.googleplay.GooglePlayConfig
 import top.app.market.data.remote.googleplay.GooglePlaySessionProvider
@@ -125,6 +128,8 @@ private val commonDataModule = module {
     singleOf(::Box7723RepositoryImpl) { bind<Box7723Repository>() }
     singleOf(::FDroidApi)
     singleOf(::FDroidRepositoryImpl) { bind<FDroidRepository>() }
+    singleOf(::TencentApi)
+    singleOf(::TencentRepositoryImpl) { bind<TencentRepository>() }
     single { GooglePlayConfig() }
     singleOf(::GooglePlaySessionProvider)
     singleOf(::GooglePlayApi)

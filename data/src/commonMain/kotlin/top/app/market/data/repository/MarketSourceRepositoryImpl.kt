@@ -42,6 +42,7 @@ internal class MarketSourceRepositoryImpl(
     private val box7723: top.app.market.domain.repository.Box7723Repository,
     private val fdroid: top.app.market.domain.repository.FDroidRepository,
     private val googlePlay: top.app.market.domain.repository.GooglePlayRepository,
+    private val tencent: top.app.market.domain.repository.TencentRepository,
 ) : MarketSourceRepository {
     override suspend fun search(source: AppSource, keyword: String, page: Int): SearchPage = when (source) {
         AppSource.XIAOMI -> market.search(keyword, page)
@@ -55,6 +56,7 @@ internal class MarketSourceRepositoryImpl(
         AppSource.BOX7723 -> box7723.search(keyword, page)
         AppSource.FDROID -> fdroid.search(keyword, page)
         AppSource.GOOGLE_PLAY -> googlePlay.search(keyword, page)
+        AppSource.TENCENT -> tencent.search(keyword, page)
     }
 
     override suspend fun categoryApps(
@@ -106,6 +108,7 @@ internal class MarketSourceRepositoryImpl(
         )
         AppSource.FDROID -> fdroid.appDetail(packageName)
         AppSource.GOOGLE_PLAY -> googlePlay.appDetail(packageName)
+        AppSource.TENCENT -> tencent.appDetail(packageName)
     }
 
     override suspend fun appComments(source: AppSource, app: MarketAppInfo): AppComments {
@@ -132,6 +135,7 @@ internal class MarketSourceRepositoryImpl(
         AppSource.BOX7723 -> box7723.downloadMeta(app)
         AppSource.FDROID -> fdroid.downloadMeta(app)
         AppSource.GOOGLE_PLAY -> googlePlay.downloadMeta(app)
+        AppSource.TENCENT -> tencent.downloadMeta(app)
     }
 
     override suspend fun downloadUpdateMeta(source: AppSource, app: MarketAppInfo): DownloadMeta = when (source) {
@@ -140,6 +144,7 @@ internal class MarketSourceRepositoryImpl(
         // F-Droid 更新直接取镜像索引里的推荐版本（带 SHA-256 校验）
         AppSource.FDROID -> fdroid.downloadMeta(app)
         AppSource.GOOGLE_PLAY -> googlePlay.downloadMeta(app)
+        AppSource.TENCENT -> tencent.downloadMeta(app)
         // 豌豆荚 / 7723 无原生更新元数据协议，回退小米商店解析
         AppSource.WANDOUJIA, AppSource.BOX7723 -> market.downloadUpdateMeta(app.onXiaomi())
         AppSource.OPPO -> oppo.downloadUpdateMeta(app)
@@ -163,6 +168,7 @@ internal class MarketSourceRepositoryImpl(
         AppSource.TAPTAP -> flow { emit(tapTap.checkUpdates()) }
         AppSource.FDROID -> flow { emit(fdroid.checkUpdates()) }
         AppSource.GOOGLE_PLAY -> flow { emit(googlePlay.checkUpdates()) }
+        AppSource.TENCENT -> flow { emit(tencent.checkUpdates()) }
         AppSource.BOX7723 -> flow { emit(emptyList()) }
     }
 
@@ -171,7 +177,7 @@ internal class MarketSourceRepositoryImpl(
             AppSource.XIAOMI -> market.checkManualUpdate(request)
             AppSource.VIVO -> vivo.checkManualUpdate(request)
             // 豌豆荚 / 7723 / F-Droid 无原生手动更新协议，回退小米商店解析
-            AppSource.WANDOUJIA, AppSource.BOX7723, AppSource.FDROID, AppSource.GOOGLE_PLAY -> market.checkManualUpdate(request)
+            AppSource.WANDOUJIA, AppSource.BOX7723, AppSource.FDROID, AppSource.GOOGLE_PLAY, AppSource.TENCENT -> market.checkManualUpdate(request)
             AppSource.OPPO -> oppo.checkManualUpdate(request)
             AppSource.SAMSUNG -> samsung.checkManualUpdate(request)
             AppSource.HONOR -> honor.checkManualUpdate(request)
@@ -183,7 +189,7 @@ internal class MarketSourceRepositoryImpl(
         when (source) {
             AppSource.OPPO -> oppo.beautyFeed(page, pageSize)
             // 豌豆荚 / 三星 / 华为 / 荣耀 / 7723 / F-Droid 无独立今日内容，回退小米商店今日
-            AppSource.XIAOMI, AppSource.WANDOUJIA, AppSource.SAMSUNG, AppSource.HUAWEI, AppSource.HONOR, AppSource.BOX7723, AppSource.FDROID, AppSource.GOOGLE_PLAY ->
+            AppSource.XIAOMI, AppSource.WANDOUJIA, AppSource.SAMSUNG, AppSource.HUAWEI, AppSource.HONOR, AppSource.BOX7723, AppSource.FDROID, AppSource.GOOGLE_PLAY, AppSource.TENCENT ->
                 today.goldMiFeed(page, pageSize)
 
             AppSource.VIVO -> vivo.auroraFeed(page, pageSize)
@@ -193,7 +199,7 @@ internal class MarketSourceRepositoryImpl(
     override suspend fun todayArticle(source: AppSource, rId: String): TodayArticle =
         when (source) {
             AppSource.OPPO -> oppo.beautyArticle(rId)
-            AppSource.XIAOMI, AppSource.WANDOUJIA, AppSource.SAMSUNG, AppSource.HUAWEI, AppSource.HONOR, AppSource.BOX7723, AppSource.FDROID, AppSource.GOOGLE_PLAY ->
+            AppSource.XIAOMI, AppSource.WANDOUJIA, AppSource.SAMSUNG, AppSource.HUAWEI, AppSource.HONOR, AppSource.BOX7723, AppSource.FDROID, AppSource.GOOGLE_PLAY, AppSource.TENCENT ->
                 today.todayArticle(rId)
 
             AppSource.VIVO -> vivo.auroraArticle(rId)

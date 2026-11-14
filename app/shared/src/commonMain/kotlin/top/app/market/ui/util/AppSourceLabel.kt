@@ -28,4 +28,5 @@ fun appSourceLabel(source: AppSource): String = when (source) {
     AppSource.BOX7723 -> stringResource(Res.string.source_box7723)
     AppSource.FDROID -> stringResource(Res.string.source_fdroid)
     AppSource.GOOGLE_PLAY -> stringResource(Res.string.source_google_play)
+    AppSource.TENCENT -> stringResource(Res.string.source_tencent)
 }

@@ -10,6 +10,7 @@ object StorePackageNames {
     const val HUAWEI = "com.huawei.appmarket"
     const val HONOR = "com.hihonor.appmarket"
     const val SAMSUNG = "com.sec.android.app.samsungapps"
+    const val TENCENT = "com.tencent.android.qqdownloader"
 
     /**
      * 根据应用来源推断对应的官方商店包名。
@@ -21,6 +22,7 @@ object StorePackageNames {
         AppSource.HUAWEI -> HUAWEI
         AppSource.HONOR -> HONOR
         AppSource.SAMSUNG -> SAMSUNG
+        AppSource.TENCENT -> TENCENT
         AppSource.TAPTAP,
         AppSource.WANDOUJIA,
         AppSource.BOX7723,

@@ -302,7 +302,7 @@ internal class GooglePlayApi(
         versionCode = versionCode,
         icon = icon,
         apkSize = size,
-        ratingScore = rating * 2,
+        ratingScore = rating.coerceIn(0.0, 5.0),
         changeLog = changeLog,
         openLink = "https://play.google.com/store/apps/details?id=$packageName",
         source = AppSource.GOOGLE_PLAY,
