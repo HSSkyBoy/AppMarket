@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.app.market.resources.Res
+import top.app.market.resources.about_aurora_summary
 import top.app.market.resources.about_open_source_licenses
 import top.app.market.resources.about_project
 import top.app.market.resources.about_title
@@ -378,6 +379,11 @@ private fun AboutContent(
                             title = "AndroidX SplashScreen",
                             summary = "developer.android.com/jetpack/androidx/releases/core",
                             onClick = { onOpenUrl("https://developer.android.com/jetpack/androidx/releases/core") },
+                        )
+                        ArrowPreference(
+                            title = "Aurora Store",
+                            summary = stringResource(Res.string.about_aurora_summary),
+                            onClick = { onOpenUrl("https://auroraoss.com") },
                         )
                         ArrowPreference(
                             title = "coil",

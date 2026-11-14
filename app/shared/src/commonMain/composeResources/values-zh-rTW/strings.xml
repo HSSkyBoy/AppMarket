@@ -322,6 +322,7 @@
     <string name="about_title">關於</string>
     <string name="about_project">專案地址</string>
     <string name="about_open_source_licenses">開放原始碼授權</string>
+    <string name="about_aurora_summary">Google Play 透過 Aurora（極光）提供的鏡像 API 匿名存取（auroraoss.com）</string>
 
     <!-- Update history -->
     <string name="update_history">更新歷史</string>

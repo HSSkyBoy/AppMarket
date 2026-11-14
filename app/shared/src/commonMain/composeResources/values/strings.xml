@@ -332,6 +332,7 @@
     <string name="about_title">About</string>
     <string name="about_project">Project repository</string>
     <string name="about_open_source_licenses">Open source licenses</string>
+    <string name="about_aurora_summary">Google Play is accessed anonymously through the Aurora mirror API (auroraoss.com)</string>
 
     <!-- Update history -->
     <string name="update_history">Update history</string>

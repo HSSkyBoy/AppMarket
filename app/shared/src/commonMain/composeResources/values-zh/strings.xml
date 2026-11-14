@@ -333,6 +333,7 @@
     <string name="about_title">关于</string>
     <string name="about_project">项目地址</string>
     <string name="about_open_source_licenses">开放源代码许可</string>
+    <string name="about_aurora_summary">Google Play 通过 Aurora（极光）提供的镜像 API 匿名访问（auroraoss.com）</string>
 
     <!-- Update history -->
     <string name="update_history">更新历史</string>
