@@ -24,6 +24,8 @@ internal data class FDroidIndexApp(
     val lastUpdated: Long,
     val zh: FDroidLocalizedText?,
     val en: FDroidLocalizedText?,
+    val apkHash: String = "",
+    val signer: String = "",
 ) {
     /** 逐字段取文案：中文优先，该字段为空时回落英文（索引里中文常只翻译了名称和简介）。 */
     private fun text(pick: (FDroidLocalizedText) -> String): String =

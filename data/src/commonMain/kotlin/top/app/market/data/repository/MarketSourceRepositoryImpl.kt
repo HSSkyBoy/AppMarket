@@ -133,8 +133,10 @@ internal class MarketSourceRepositoryImpl(
     override suspend fun downloadUpdateMeta(source: AppSource, app: MarketAppInfo): DownloadMeta = when (source) {
         AppSource.XIAOMI -> market.downloadUpdateMeta(app)
         AppSource.VIVO -> vivo.downloadUpdateMeta(app)
-        // 豌豆荚 / 7723 / F-Droid 无原生更新元数据协议，回退小米商店解析
-        AppSource.WANDOUJIA, AppSource.BOX7723, AppSource.FDROID -> market.downloadUpdateMeta(app.onXiaomi())
+        // F-Droid 更新直接取镜像索引里的推荐版本（带 SHA-256 校验）
+        AppSource.FDROID -> fdroid.downloadMeta(app)
+        // 豌豆荚 / 7723 无原生更新元数据协议，回退小米商店解析
+        AppSource.WANDOUJIA, AppSource.BOX7723 -> market.downloadUpdateMeta(app.onXiaomi())
         AppSource.OPPO -> oppo.downloadUpdateMeta(app)
         AppSource.SAMSUNG -> samsung.downloadUpdateMeta(app)
         AppSource.HONOR -> honor.downloadUpdateMeta(app)
@@ -154,7 +156,8 @@ internal class MarketSourceRepositoryImpl(
         AppSource.HONOR -> flow { emit(honor.checkUpdates()) }
         AppSource.HUAWEI -> flow { emit(huawei.checkUpdates()) }
         AppSource.TAPTAP -> flow { emit(tapTap.checkUpdates()) }
-        AppSource.BOX7723, AppSource.FDROID -> flow { emit(emptyList()) }
+        AppSource.FDROID -> flow { emit(fdroid.checkUpdates()) }
+        AppSource.BOX7723 -> flow { emit(emptyList()) }
     }
 
     override suspend fun checkManualUpdate(source: AppSource, request: ManualUpdateRequest): ManualUpdateResult =

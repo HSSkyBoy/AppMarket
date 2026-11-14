@@ -10,4 +10,5 @@ interface FDroidRepository {
     suspend fun search(keyword: String, page: Int = 0): SearchPage
     suspend fun appDetail(packageName: String): AppDetail
     suspend fun downloadMeta(app: MarketAppInfo, mirror: FDroidMirror? = null): DownloadMeta
+    suspend fun checkUpdates(): List<MarketAppInfo>
 }

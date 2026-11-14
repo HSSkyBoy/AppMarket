@@ -3,6 +3,7 @@ package top.app.market.data.remote.fdroid
 import top.app.market.domain.exception.MarketException
 import top.app.market.domain.model.download.DownloadMeta
 import top.app.market.domain.model.download.DownloadPart
+import top.app.market.domain.model.installed.InstalledPackage
 import top.app.market.domain.model.market.AppDetail
 import top.app.market.domain.model.market.AppScreenshot
 import top.app.market.domain.model.market.AppSource
@@ -91,7 +92,28 @@ internal class FDroidApi(
             icon = iconUrl(entry, mirror),
             downloadUrl = "${mirror.repoBaseUrl}/${entry.apkName}",
             fallbackSize = entry.apkSize.takeIf { it > 0 } ?: app.apkSize,
+            hash = entry.apkHash,
         )
+    }
+
+    /**
+     * 本地比对索引做更新检查。F-Droid 会给 APK 重新签名，所以只推荐签名与本机已装版本一致的更新，
+     * 避免用户从其它商店装的应用被覆盖安装时签名冲突；任一侧签名缺失时保守跳过。
+     */
+    suspend fun checkUpdates(
+        installed: List<InstalledPackage>,
+        mirror: FDroidMirror = FDroidMirror.Default,
+    ): List<MarketAppInfo> {
+        if (installed.isEmpty()) return emptyList()
+        val index = index.load(mirror)
+        return installed.mapNotNull { local ->
+            val remote = index.find(local.packageName) ?: return@mapNotNull null
+            if (remote.versionCode <= local.versionCode) return@mapNotNull null
+            if (remote.signer.isBlank() || !remote.signer.equals(local.signerSha256, ignoreCase = true)) {
+                return@mapNotNull null
+            }
+            toMarketAppInfo(remote, mirror)
+        }
     }
 
     /** 名称完全匹配 > 名称前缀 > 名称包含 > 包名包含 > 仅简介命中。 */
@@ -150,6 +172,7 @@ internal fun fdroidDownloadMeta(
     icon: String,
     downloadUrl: String,
     fallbackSize: Long,
+    hash: String = "",
 ): DownloadMeta {
     return DownloadMeta(
         appId = appId,
@@ -165,7 +188,7 @@ internal fun fdroidDownloadMeta(
                 type = "base",
                 url = downloadUrl,
                 size = fallbackSize,
-                hash = "",
+                hash = hash,
             )
         ),
         icon = icon,

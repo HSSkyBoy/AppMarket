@@ -58,6 +58,8 @@ internal object FDroidIndexParser {
         put("a", app.apkName)
         put("s", app.apkSize)
         put("t", app.lastUpdated)
+        put("h", app.apkHash)
+        put("sg", app.signer)
         app.zh?.let { put("zh", encodeText(it)) }
         app.en?.let { put("en", encodeText(it)) }
     }.toString()
@@ -72,6 +74,8 @@ internal object FDroidIndexParser {
             apkName = o.str("a"),
             apkSize = o.long("s"),
             lastUpdated = o.long("t"),
+            apkHash = o.str("h"),
+            signer = o.str("sg"),
             zh = (o["zh"] as? JsonObject)?.let(::decodeText),
             en = (o["en"] as? JsonObject)?.let(::decodeText),
         )
@@ -109,8 +113,12 @@ internal object FDroidIndexParser {
         var versionCode: Long = 0L
         var apkName: String = ""
         var apkSize: Long = 0L
+        var apkHash: String = ""
+        var signer: String = ""
 
         fun toApp() = FDroidIndexApp(
+            apkHash = apkHash,
+            signer = signer,
             packageName = packageName,
             icon = icon,
             versionName = versionName,
@@ -167,6 +175,10 @@ internal object FDroidIndexParser {
         draft.versionCode = picked.long("versionCode")
         draft.apkName = picked.str("apkName")
         draft.apkSize = picked.long("size")
+        if (picked.str("hashType").equals("sha256", ignoreCase = true)) {
+            draft.apkHash = picked.str("hash").lowercase()
+        }
+        draft.signer = picked.str("signer").lowercase()
     }
 
     private fun JsonObject.str(key: String): String = (this[key] as? JsonPrimitive)?.contentOrNull.orEmpty()

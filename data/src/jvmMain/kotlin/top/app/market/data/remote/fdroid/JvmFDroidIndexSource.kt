@@ -25,7 +25,7 @@ import java.util.zip.ZipFile
 
 private const val IndexJarName = "index-v1.jar"
 private const val IndexJsonEntry = "index-v1.json"
-private const val CacheFileName = "index.jsonl"
+private const val CacheFileName = "index-v2.jsonl"
 private const val MetaFileName = "index.meta"
 
 /** 缓存多久内不再向镜像确认更新（镜像约每天同步一次）。 */
