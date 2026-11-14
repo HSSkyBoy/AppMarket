@@ -25,6 +25,7 @@ object StorePackageNames {
         AppSource.WANDOUJIA,
         AppSource.BOX7723,
         AppSource.FDROID,
+        AppSource.GOOGLE_PLAY,
         null -> GOOGLE_PLAY
     }
 }

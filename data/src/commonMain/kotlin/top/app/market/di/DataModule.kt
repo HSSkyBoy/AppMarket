@@ -24,7 +24,11 @@ import top.app.market.data.remote.box7723.Box7723ApiConfig
 import top.app.market.data.remote.fdroid.FDroidApi
 import top.app.market.data.repository.AnonymousAccountRepositoryImpl
 import top.app.market.data.repository.Box7723RepositoryImpl
+import top.app.market.data.remote.googleplay.GooglePlayApi
+import top.app.market.data.remote.googleplay.GooglePlayConfig
+import top.app.market.data.remote.googleplay.GooglePlaySessionProvider
 import top.app.market.data.repository.FDroidRepositoryImpl
+import top.app.market.data.repository.GooglePlayRepositoryImpl
 import top.app.market.data.repository.HonorRepositoryImpl
 import top.app.market.data.repository.HuaweiRepositoryImpl
 import top.app.market.data.repository.MarketLinkResolverImpl
@@ -45,6 +49,7 @@ import top.app.market.domain.repository.AccountRepository
 import top.app.market.domain.repository.Box7723Repository
 import top.app.market.domain.repository.DownloadRepository
 import top.app.market.domain.repository.FDroidRepository
+import top.app.market.domain.repository.GooglePlayRepository
 import top.app.market.domain.repository.HonorRepository
 import top.app.market.domain.repository.HuaweiRepository
 import top.app.market.domain.repository.MarketLinkResolver
@@ -120,6 +125,10 @@ private val commonDataModule = module {
     singleOf(::Box7723RepositoryImpl) { bind<Box7723Repository>() }
     singleOf(::FDroidApi)
     singleOf(::FDroidRepositoryImpl) { bind<FDroidRepository>() }
+    single { GooglePlayConfig() }
+    singleOf(::GooglePlaySessionProvider)
+    singleOf(::GooglePlayApi)
+    singleOf(::GooglePlayRepositoryImpl) { bind<GooglePlayRepository>() }
     singleOf(::MarketSourceRepositoryImpl) { bind<MarketSourceRepository>() }
 
     singleOf(::RecordingDownloadRepositoryImpl) { bind<DownloadRepository>() }

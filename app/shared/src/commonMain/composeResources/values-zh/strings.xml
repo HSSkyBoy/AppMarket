@@ -196,6 +196,7 @@
     <string name="source_taptap">TapTap</string>
     <string name="source_box7723">7723</string>
     <string name="source_fdroid">F-Droid</string>
+    <string name="source_google_play">Google Play</string>
     <string name="fdroid_mirror">F-Droid 镜像源</string>
     <string name="fdroid_mirror_summary">选择 F-Droid 应用下载与元数据所使用的源</string>
     <string name="fdroid_mirror_nju">南京大学 (NJU)</string>
