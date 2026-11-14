@@ -1,4 +1,4 @@
-﻿package top.app.market.ui.screen
+package top.app.market.ui.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -47,13 +47,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import top.app.market.platform.UiPlatform
 import top.app.market.resources.Res
 import top.app.market.resources.about_aurora_summary
 import top.app.market.resources.about_open_source_licenses
 import top.app.market.resources.about_project
 import top.app.market.resources.about_title
+import top.app.market.resources.already_latest_version
 import top.app.market.resources.back
+import top.app.market.resources.check_for_updates
+import top.app.market.resources.check_for_updates_summary
+import top.app.market.resources.check_update_failed
+import top.app.market.resources.checking_for_updates
 import top.app.market.resources.ic_launcher
+import top.app.market.viewmodel.AppUpdateEvent
+import top.app.market.viewmodel.AppUpdateViewModel
 import top.app.market.ui.component.SectionTitle
 import top.app.market.ui.component.blur.BlurredBar
 import top.app.market.ui.component.blur.ColorBlendToken
@@ -164,6 +175,21 @@ private fun AboutContent(
     scrollProgress: State<Float>,
     onOpenUrl: (String) -> Unit,
 ) {
+    val uiPlatform = koinInject<UiPlatform>()
+    val updateViewModel = koinViewModel<AppUpdateViewModel>()
+    val isChecking by updateViewModel.isChecking.collectAsStateWithLifecycle()
+    val alreadyLatestMsg = stringResource(Res.string.already_latest_version)
+    val checkFailedMsg = stringResource(Res.string.check_update_failed)
+
+    androidx.compose.runtime.LaunchedEffect(updateViewModel) {
+        updateViewModel.events.collect { event ->
+            when (event) {
+                is AppUpdateEvent.AlreadyLatest -> uiPlatform.showToast(alreadyLatestMsg)
+                is AppUpdateEvent.CheckFailed -> uiPlatform.showToast(checkFailedMsg)
+            }
+        }
+    }
+
     val layoutDirection = LocalLayoutDirection.current
     val density = LocalDensity.current
 
@@ -342,6 +368,19 @@ private fun AboutContent(
                     )
                     SectionTitle(text = stringResource(Res.string.about_project), topPadding = 0.dp)
                     Card(modifier = cardModifier, colors = cardColors) {
+                        ArrowPreference(
+                            title = stringResource(Res.string.check_for_updates),
+                            summary = if (isChecking) {
+                                stringResource(Res.string.checking_for_updates)
+                            } else {
+                                stringResource(Res.string.check_for_updates_summary)
+                            },
+                            onClick = {
+                                if (!isChecking) {
+                                    updateViewModel.checkForUpdate(misc.VersionInfo.VERSION_NAME, manual = true)
+                                }
+                            },
+                        )
                         ArrowPreference(
                             title = "GitHub",
                             summary = "github.com/HSSkyBoy/AppMarket",

@@ -361,4 +361,13 @@
     <string name="image_saved">Saved to Pictures/AppMarket</string>
     <string name="image_save_failed">Could not save the image</string>
     <string name="image_save_unsupported">Saving images is only available on Android</string>
+    <string name="check_for_updates">Check for updates</string>
+    <string name="check_for_updates_summary">Check for new releases on GitHub</string>
+    <string name="checking_for_updates">Checking for updates…</string>
+    <string name="already_latest_version">You are on the latest version</string>
+    <string name="check_update_failed">Failed to check for updates</string>
+    <string name="update_dialog_title">New version available: v%1$s</string>
+    <string name="update_download_mirror">Fast download (Mirror)</string>
+    <string name="update_download_official">Official download</string>
+    <string name="update_later">Later</string>
 </resources>

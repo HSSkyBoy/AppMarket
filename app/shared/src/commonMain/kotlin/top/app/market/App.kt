@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -48,6 +49,7 @@ import top.app.market.resources.install_permission_settings_unavailable
 import top.app.market.resources.install_permission_title
 import top.app.market.resources.installer_delta_fallback_toast
 import top.app.market.ui.component.AppTextButton
+import top.app.market.ui.component.AppUpdateDialog
 import top.app.market.ui.navigation.AppNavigation
 import top.app.market.ui.theme.LocalEnableBlur
 import top.app.market.ui.theme.LocalEnableFloatingBottomBar
@@ -55,9 +57,11 @@ import top.app.market.ui.theme.LocalEnableFloatingBottomBarBlur
 import top.app.market.ui.theme.LocalEnableNavigationBadge
 import top.app.market.ui.util.AppLocaleProvider
 import top.app.market.ui.util.LocalStripAppNameSubtitle
+import top.app.market.viewmodel.AppUpdateViewModel
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
@@ -107,6 +111,12 @@ fun App(
     }
     val settingsUnavailableMessage = stringResource(Res.string.install_permission_settings_unavailable)
     val installerPrefs = koinInject<InstallerPreferencesRepository>()
+    val appUpdateViewModel = koinViewModel<AppUpdateViewModel>()
+    val newRelease by appUpdateViewModel.newRelease.collectAsStateWithLifecycle()
+    val uriHandler = LocalUriHandler.current
+    LaunchedEffect(Unit) {
+        appUpdateViewModel.checkForUpdate(misc.VersionInfo.VERSION_NAME, manual = false)
+    }
     LaunchedEffect(Unit) {
         downloads.deltaFallbacks.collect { fallback ->
             if (!installerPrefs.deltaFallbackNoticeEnabled()) return@collect
@@ -214,6 +224,11 @@ fun App(
                             uiPlatform.showToast(settingsUnavailableMessage)
                         }
                     },
+                )
+                AppUpdateDialog(
+                    releaseInfo = newRelease,
+                    onDownload = { uriHandler.openUri(it) },
+                    onDismiss = appUpdateViewModel::dismissUpdate,
                 )
             }
         }

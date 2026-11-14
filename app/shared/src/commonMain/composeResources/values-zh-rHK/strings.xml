@@ -351,4 +351,13 @@
     <string name="image_saved">已經儲存咗去 Pictures/AppMarket</string>
     <string name="image_save_failed">儲存唔到圖片</string>
     <string name="image_save_unsupported">淨係 Android 先儲存到圖片</string>
+    <string name="check_for_updates">檢查更新</string>
+    <string name="check_for_updates_summary">檢查 GitHub 上有冇新版本發佈</string>
+    <string name="checking_for_updates">檢查緊更新…</string>
+    <string name="already_latest_version">目前已經係最新版本</string>
+    <string name="check_update_failed">檢查更新失敗，請檢查網絡</string>
+    <string name="update_dialog_title">發現新版本 v%1$s</string>
+    <string name="update_download_mirror">加速下載</string>
+    <string name="update_download_official">官方下載</string>
+    <string name="update_later">稍後先</string>
 </resources>

@@ -362,4 +362,13 @@
     <string name="image_saved">已保存到 Pictures/AppMarket</string>
     <string name="image_save_failed">保存图片失败</string>
     <string name="image_save_unsupported">保存图片仅在 Android 上可用</string>
+    <string name="check_for_updates">检查更新</string>
+    <string name="check_for_updates_summary">检查 GitHub 是否有新版本发布</string>
+    <string name="checking_for_updates">正在检查更新…</string>
+    <string name="already_latest_version">当前已是最新版本</string>
+    <string name="check_update_failed">检查更新失败，请检查网络</string>
+    <string name="update_dialog_title">发现新版本 v%1$s</string>
+    <string name="update_download_mirror">加速下载</string>
+    <string name="update_download_official">官方下载</string>
+    <string name="update_later">稍后再说</string>
 </resources>
